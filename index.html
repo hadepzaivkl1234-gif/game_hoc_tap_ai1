@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LAB ZERO: SCI-FI ADVENTURE 12</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body { font-family: 'Rajdhani', sans-serif; background: #020617; color: #f8fafc; overflow: hidden; }
+    .sci-fi { font-family: 'Orbitron', sans-serif; }
+    .neon-border { border: 2px solid #00f2fe; box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); }
+    @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .alarm-active { animation: pulse-red 0.8s infinite; background: rgba(239, 68, 68, 0.2) !important; }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between p-2 md:p-4 select-none">
+
+  <!-- HUD TRÊN CÙNG -->
+  <header class="w-full max-w-5xl mx-auto flex items-center justify-between bg-slate-900/90 p-3 rounded-xl neon-border border-cyan-500/50 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 bg-cyan-400 rounded-full animate-ping"></div>
+      <h1 class="text-lg md:text-xl font-black text-cyan-400 tracking-wider sci-fi">LAB ZERO 2D</h1>
+    </div>
+    
+    <!-- THANH TÂM LÝ & THỜI GIAN -->
+    <div class="flex items-center gap-4 text-xs md:text-sm">
+      <div class="flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-700">
+        <span>TÂM LÝ:</span>
+        <span id="emotion-badge" class="font-bold text-emerald-400">😊 BÌNH THƯỜNG</span>
+      </div>
+      <div class="bg-slate-950/80 px-3 py-1.5 rounded-lg border border-cyan-500/40 text-cyan-400 font-mono font-bold text-base">
+        ⏱️ <span id="timer-display">20:00</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- KHU VỰC GAME CANVAS 2D TƯƠNG TÁC -->
+  <main class="relative w-full max-w-5xl mx-auto flex-grow my-2 bg-slate-950 rounded-xl neon-border border-slate-800 overflow-hidden flex items-center justify-center">
+    
+    <!-- CANVAS HIỂN THỊ THẾ GIỚI GAME -->
+    <canvas id="gameCanvas" width="800" height="450" class="w-full h-full object-contain bg-slate-950"></canvas>
+
+    <!-- NÚT ĐIỀU KHIỂN DÀNH CHO DI ĐỘNG -->
+    <div class="absolute bottom-4 left-4 grid grid-cols-3 gap-1 w-32 h-32 md:hidden opacity-70">
+      <div></div>
+      <button onclick="movePlayer('Up')" class="bg-slate-800 text-cyan-400 font-bold rounded p-2">▲</button>
+      <div></div>
+      <button onclick="movePlayer('Left')" class="bg-slate-800 text-cyan-400 font-bold rounded p-2">◄</button>
+      <button onclick="interactTarget()" class="bg-cyan-600 text-white font-bold rounded p-2 text-xs">E</button>
+      <button onclick="movePlayer('Right')" class="bg-slate-800 text-cyan-400 font-bold rounded p-2">►</button>
+      <div></div>
+      <button onclick="movePlayer('Down')" class="bg-slate-800 text-cyan-400 font-bold rounded p-2">▼</button>
+      <div></div>
+    </div>
+
+    <!-- TÚI ĐỒ (INVENTORY) & HUY HIỆU -->
+    <div class="absolute top-3 right-3 bg-slate-900/90 p-2.5 rounded-xl border border-slate-700 flex flex-col gap-2 max-w-[160px]">
+      <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider sci-fi">🎒 TÚI VẬT PHẨM</div>
+      <div id="inventory-list" class="flex flex-wrap gap-1.5 min-h-[36px]">
+        <span class="text-xs text-slate-500 italic">Trống...</span>
+      </div>
+      <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider sci-fi mt-1">🏅 HUY HIỆU</div>
+      <div id="badge-list" class="flex flex-wrap gap-1 text-base min-h-[24px]"></div>
+    </div>
+
+    <!-- POPUP GIAO DIỆN GIẢI ĐỐ KHI ĐẾN GẦN MÁY MÓC -->
+    <div id="puzzle-modal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden z-20">
+      <div class="bg-slate-900 border-2 border-cyan-400 p-6 rounded-2xl max-w-md w-full relative shadow-2xl">
+        <button onclick="closePuzzle()" class="absolute top-3 right-3 text-slate-400 hover:text-white font-bold text-xl">✕</button>
+        <h3 id="puzzle-title" class="text-lg font-bold text-cyan-400 mb-2 sci-fi">MÁY THÍ NGHIỆM</h3>
+        <p id="puzzle-desc" class="text-sm text-slate-300 mb-4 leading-relaxed"></p>
+        
+        <div id="puzzle-body" class="space-y-4"></div>
+        
+        <div class="mt-4 flex gap-2">
+          <button id="puzzle-submit-btn" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 rounded-lg transition sci-fi">XÁC NHẬN THAO TÁC</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MÀN HÌNH BẢNG THÔNG BÁO -->
+    <div id="msg-box" class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-cyan-950/90 border border-cyan-400 px-6 py-2 rounded-full text-cyan-300 text-sm font-bold opacity-0 transition-opacity duration-300 pointer-events-none">
+      Đang tiến gần máy...
+    </div>
+  </main>
+
+  <!-- FOOTER HƯỚNG DẪN -->
+  <footer class="w-full max-w-5xl mx-auto bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-center text-xs text-slate-400 flex justify-between items-center">
+    <span>🎮 **Di chuyển:** Nút W-A-S-D hoặc Phím Mũi Tên | **Tương tác:** Phím [E] hoặc Spacebar</span>
+    <span class="text-cyan-400 font-bold">LAB ZERO 2D v2.0</span>
+  </footer>
+
+  <script>
+    // --- 1. KHỞI TẠO GAME & KHÔNG GIAN CANVAS 2D ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const state = {
+      timeLeft: 1200,
+      currentRoom: 1,
+      mistakes: 0,
+      inventory: [],
+      badges: [],
+      emotion: 'normal', // normal, sweat, panic, happy
+      sweatTimer: 0,
+      nearTarget: null,
+      m1: { m: 890, ans: 120 },
+      m2: { mass: 10, t1: 400, ans: 3.4 },
+      m3: { mass: 0.5, ansTime: 32.0 },
+      m4: { side: 1.8, ansX: 0.30 },
+      m5: { ans: [0, 2, 2] }
+    };
+
+    // Vị trí Nhân vật & Các Máy Móc Tương Tác Trong Phòng
+    const player = { x: 80, y: 225, r: 16, speed: 4 };
+
+    // Cấu hình các thiết bị khoa học trong từng phòng
+    const roomTargets = {
+      1: { name: "Bản Lề Tủ Khóa", x: 650, y: 225, icon: "🚪", color: "#f59e0b", itemNeeded: "Bình NaOH" },
+      2: { name: "Lò Phản Ứng Tản Nhiệt", x: 650, y: 225, icon: "⚛️", color: "#ef4444", itemNeeded: "Ống Nước Lạnh" },
+      3: { name: "Chốt Chì Khóa Cửa", x: 650, y: 225, icon: "🔒", color: "#3b82f6", itemNeeded: "Đèn Khò Plasma" },
+      4: { name: "Máy Cắt Laser Tôn", x: 650, y: 225, icon: "✂️", color: "#10b981", itemNeeded: "Tấm Tôn Thép" },
+      5: { name: "Radar An Ninh Cuối", x: 650, y: 225, icon: "📡", color: "#8b5cf6", itemNeeded: "Thẻ Từ Master" }
+    };
+
+    // Vị trí Vật phẩm nhặt trên sàn
+    const roomItems = {
+      1: { name: "Bình NaOH", x: 300, y: 120, icon: "🧪", picked: false },
+      2: { name: "Ống Nước Lạnh", x: 300, y: 320, icon: "❄️", picked: false },
+      3: { name: "Đèn Khò Plasma", x: 250, y: 150, icon: "🔥", picked: false },
+      4: { name: "Tấm Tôn Thép", x: 350, y: 300, icon: "📦", picked: false },
+      5: { name: "Thẻ Từ Master", x: 200, y: 225, icon: "💳", picked: false }
+    };
+
+    // --- 2. HỆ THỐNG XỬ LÝ ÂM THANH WEB AUDIO API ---
+    let audioCtx = null;
+    function playSound(type) {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      const t = audioCtx.currentTime;
+
+      if (type === 'step') {
+        osc.frequency.setValueAtTime(150, t); gain.gain.setValueAtTime(0.02, t);
+        osc.start(t); osc.stop(t + 0.05);
+      } else if (type === 'pick') {
+        osc.frequency.setValueAtTime(523, t); osc.frequency.exponentialRampToValueAtTime(880, t + 0.15);
+        gain.gain.setValueAtTime(0.1, t); osc.start(t); osc.stop(t + 0.15);
+      } else if (type === 'win') {
+        osc.frequency.setValueAtTime(440, t); osc.frequency.exponentialRampToValueAtTime(880, t + 0.4);
+        gain.gain.setValueAtTime(0.2, t); osc.start(t); osc.stop(t + 0.4);
+      } else if (type === 'alarm') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, t); osc.frequency.setValueAtTime(400, t + 0.1);
+        gain.gain.setValueAtTime(0.2, t); osc.start(t); osc.stop(t + 0.2);
+      }
+    }
+
+    // --- 3. VẼ ĐỒ HỌA 2D & NHÂN VẬT THỜI GIAN THỰC (GAME LOOP) ---
+    const keys = {};
+    window.addEventListener('keydown', e => {
+      keys[e.key] = true;
+      if (e.key === 'e' || e.key === 'E' || e.key === ' ') interactTarget();
+    });
+    window.addEventListener('keyup', e => keys[e.key] = false);
+
+    function updatePlayer() {
+      let moved = false;
+      if (keys['ArrowUp'] || keys['w'] || keys['W']) { player.y = Math.max(40, player.y - player.speed); moved = true; }
+      if (keys['ArrowDown'] || keys['s'] || keys['S']) { player.y = Math.min(canvas.height - 40, player.y + player.speed); moved = true; }
+      if (keys['ArrowLeft'] || keys['a'] || keys['A']) { player.x = Math.max(40, player.x - player.speed); moved = true; }
+      if (keys['ArrowRight'] || keys['d'] || keys['D']) { player.x = Math.min(canvas.width - 40, player.x + player.speed); moved = true; }
+      if (moved && Math.random() < 0.2) playSound('step');
+
+      // Tự động kiểm tra khoảng cách nhặt đồ & tương tác
+      checkProximity();
+    }
+
+    function checkProximity() {
+      const target = roomTargets[state.currentRoom];
+      const item = roomItems[state.currentRoom];
+
+      // Nhặt vật phẩm
+      if (item && !item.picked) {
+        const dist = Math.hypot(player.x - item.x, player.y - item.y);
+        if (dist < 35) {
+          item.picked = true;
+          state.inventory.push(item.name);
+          playSound('pick');
+          showMsg(`🎒 Đã nhặt: ${item.name}!`);
+          updateInventoryUI();
+        }
+      }
+
+      // Đến gần máy móc
+      const distTarget = Math.hypot(player.x - target.x, player.y - target.y);
+      if (distTarget < 50) {
+        state.nearTarget = target;
+        showMsg(`Bấm [E] để thao tác ${target.name}`);
+      } else {
+        if (state.nearTarget === target) state.nearTarget = null;
+      }
+    }
+
+    function drawScene() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. Vẽ phòng thí nghiệm (Background Sci-Fi Grid)
+      ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+      for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+
+      // 2. Vẽ Cửa Thoát / Máy Móc Tương Tác
+      const target = roomTargets[state.currentRoom];
+      ctx.fillStyle = target.color;
+      ctx.beginPath(); ctx.arc(target.x, target.y, 35, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#00f2fe'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(target.icon, target.x, target.y);
+
+      // 3. Vẽ Vật Phẩm Trên Sàn (nếu chưa nhặt)
+      const item = roomItems[state.currentRoom];
+      if (item && !item.picked) {
+        ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(item.x, item.y, 18, 0, Math.PI * 2); ctx.fill();
+        ctx.fillText(item.icon, item.x, item.y);
+        ctx.font = '10px Orbitron'; ctx.fillStyle = '#cbd5e1'; ctx.fillText(item.name, item.x, item.y + 28);
+      }
+
+      // 4. VẼ NHÂN VẬT & BIỂU CẢM ĐỘNG (SWEAT / EMOTION)
+      drawCharacter(player.x, player.y);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // VẼ NHÂN VẬT 2D BIỂU CẢM LINH HOẠT
+    function drawCharacter(x, y) {
+      ctx.save(); ctx.translate(x, y);
+
+      // Rung lắc nhẹ khi hoảng sợ
+      if (state.emotion === 'panic') {
+        ctx.translate((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4);
+      }
+
+      // Thân nhân vật
+      ctx.fillStyle = '#0284c7'; ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.stroke();
+
+      // Đầu/Mặt
+      ctx.fillStyle = '#fde047'; ctx.beginPath(); ctx.arc(0, -4, 10, 0, Math.PI * 2); ctx.fill();
+
+      // Biểu cảm khuôn mặt
+      ctx.fillStyle = '#0f172a';
+      if (state.emotion === 'happy') {
+        // Mắt cười, miệng hân hoan
+        ctx.beginPath(); ctx.arc(-4, -6, 1.5, 0, Math.PI * 2); ctx.arc(4, -6, 1.5, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#0f172a'; ctx.beginPath(); ctx.arc(0, -4, 4, 0, Math.PI); ctx.stroke();
+      } else if (state.emotion === 'panic') {
+        // Mắt trợn tròn, miệng mở to hốt hoảng
+        ctx.beginPath(); ctx.arc(-4, -6, 2.5, 0, Math.PI * 2); ctx.arc(4, -6, 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, -1, 3, 0, Math.PI * 2); ctx.fill();
+
+        // GIỌT MỒ HÔI BẢY RÒNG RÒNG (ANIMATION)
+        state.sweatTimer += 0.15;
+        const sweatY = -12 + (Math.sin(state.sweatTimer) * 3);
+        ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(10, sweatY, 3, 0, Math.PI * 2); ctx.fill();
+      } else {
+        // Bình thường
+        ctx.beginPath(); ctx.arc(-4, -6, 1.5, 0, Math.PI * 2); ctx.arc(4, -6, 1.5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillRect(-3, -2, 6, 1.5);
+      }
+
+      ctx.restore();
+    }
+
+    function gameLoop() {
+      updatePlayer();
+      drawScene();
+    }
+
+    // --- 4. LOGIC GIẢI ĐỐ & TƯƠNG TÁC MÔI TRƯỜNG ---
+    function interactTarget() {
+      const target = roomTargets[state.currentRoom];
+      if (!state.nearTarget) {
+        showMsg("Hãy đi lại gần thiết bị để tương tác!");
+        return;
+      }
+
+      // Kiểm tra túi đồ xem đã nhặt vật phẩm chưa
+      if (!state.inventory.includes(target.itemNeeded)) {
+        state.emotion = 'panic';
+        updateEmotionUI();
+        speakMinhAnh(`Cần nhặt vật phẩm [${target.itemNeeded}] trên sàn trước khi thao tác!`);
+        return;
+      }
+
+      openPuzzle();
+    }
+
+    function openPuzzle() {
+      const modal = document.getElementById('puzzle-modal');
+      const title = document.getElementById('puzzle-title');
+      const desc = document.getElementById('puzzle-desc');
+      const body = document.getElementById('puzzle-body');
+
+      modal.classList.remove('hidden');
+      if (state.currentRoom === 1) {
+        title.innerText = "MÀN 1: XÀ PHÒNG HÓA BẢN LỀ";
+        desc.innerText = `Cần xà phòng hóa ${state.m1.m}g mỡ Tristearin. Nhập khối lượng NaOH nguyên chất cần dùng (g):`;
+        body.innerHTML = `<input type="number" id="ans-in" class="w-full bg-slate-950 border border-cyan-400 p-3 rounded text-center text-cyan-300 font-bold text-lg" placeholder="Nhập số gam NaOH...">`;
+      } else if (state.currentRoom === 2) {
+        title.innerText = "MÀN 2: LÒ PHẢN ỨNG HẠ NHIỆT";
+        desc.innerText = `Bơm nước lạnh (20°C) hạ khối đồng ${state.m2.mass}kg ở ${state.m2.t1}K xuống 320K. Chọn số kg nước:`;
+        body.innerHTML = `<input type="range" id="ans-slider" min="0" max="10" step="0.1" value="5" class="w-full accent-cyan-400" oninput="document.getElementById('sl-v').innerText=this.value">
+                          <div class="text-center font-bold text-cyan-400 mt-2"><span id="sl-v">5.0</span> kg</div>`;
+      } else if (state.currentRoom === 3) {
+        title.innerText = "MÀN 3: ĐÈN KHÒ PHÁ CHỐT CHÌ";
+        desc.innerText = `Nung chảy chốt chì ${state.m3.mass}kg. Canh đúng thời gian khò (${state.m3.ansTime}s) rồi ngắt!`;
+        body.innerHTML = `<div id="p3-timer" class="text-3xl font-mono text-center font-bold text-cyan-400 my-2">00.0s</div>
+                          <button onclick="startP3Torch()" class="w-full bg-amber-600 py-2 rounded font-bold">🔥 BẬT ĐÈN KHÒ</button>`;
+      } else if (state.currentRoom === 4) {
+        title.innerText = "MÀN 4: THÙNG TÔN CỰC ĐẠI";
+        desc.innerText = `Tấm tôn cạnh ${state.m4.side}m. Chọn độ dài cạnh cắt x (m) để thể tích lớn nhất:`;
+        body.innerHTML = `<input type="number" id="ans-in" step="0.05" class="w-full bg-slate-950 border border-cyan-400 p-3 rounded text-center text-cyan-300 font-bold text-lg" placeholder="Kích thước x (m)...">`;
+      } else if (state.currentRoom === 5) {
+        title.innerText = "MÀN 5: KHẢO SÁT RADAR CUỐI";
+        desc.innerText = `Nhập x_CĐ, x_CT và Max f(x) của y = x³ - 3x² + 2 trên [0, 3]:`;
+        body.innerHTML = `<input type="number" id="m5-1" placeholder="x_CĐ" class="w-full bg-slate-950 border border-cyan-400 p-2 rounded text-center text-cyan-300 mb-2">
+                          <input type="number" id="m5-2" placeholder="x_CT" class="w-full bg-slate-950 border border-cyan-400 p-2 rounded text-center text-cyan-300 mb-2">
+                          <input type="number" id="m5-3" placeholder="Max f(x)" class="w-full bg-slate-950 border border-cyan-400 p-2 rounded text-center text-cyan-300">`;
+      }
+
+      document.getElementById('puzzle-submit-btn').onclick = checkPuzzleAnswer;
+    }
+
+    function checkPuzzleAnswer() {
+      let isCorrect = false;
+      if (state.currentRoom === 1) {
+        const val = parseFloat(document.getElementById('ans-in').value);
+        if (Math.abs(val - state.m1.ans) <= 0.5) isCorrect = true;
+      } else if (state.currentRoom === 2) {
+        const val = parseFloat(document.getElementById('ans-slider').value);
+        if (Math.abs(val - state.m2.ans) <= 0.5) isCorrect = true;
+      } else if (state.currentRoom === 3) {
+        if (Math.abs(p3Elapsed - state.m3.ansTime) <= 1.5) isCorrect = true;
+      } else if (state.currentRoom === 4) {
+        const val = parseFloat(document.getElementById('ans-in').value);
+        if (Math.abs(val - state.m4.ansX) <= 0.05) isCorrect = true;
+      } else if (state.currentRoom === 5) {
+        const v1 = parseFloat(document.getElementById('m5-1').value);
+        const v2 = parseFloat(document.getElementById('m5-2').value);
+        const v3 = parseFloat(document.getElementById('m5-3').value);
+        if (v1 === 0 && v2 === 2 && v3 === 2) isCorrect = true;
+      }
+
+      if (isCorrect) {
+        playSound('win');
+        closePuzzle();
+        state.emotion = 'happy';
+        updateEmotionUI();
+        giveBadge(`Bậc Thầy Màn ${state.currentRoom}`);
+        
+        if (state.currentRoom < 5) {
+          state.currentRoom++;
+          player.x = 80; player.y = 225; // Nhân vật chạy sang phòng mới
+          showMsg(`🎉 XÃ BỎ PHÒNG KHÓA! Bước sang Phòng Thí Nghiệm ${state.currentRoom}`);
+        } else {
+          confetti({ particleCount: 200, spread: 100 });
+          alert("🏆 BẠN ĐÃ CHIẾN THẮNG TRÒ CHƠI NGUYÊN VIỆN ESCAPE ROOM SCI-FI!");
+        }
+      } else {
+        playSound('alarm');
+        state.mistakes++;
+        state.timeLeft = Math.max(0, state.timeLeft - 30);
+        state.emotion = 'panic';
+        updateEmotionUI();
+        document.querySelector('main').classList.add('alarm-active');
+        setTimeout(() => document.querySelector('main').classList.remove('alarm-active'), 800);
+        alert("❌ SAI RỒI! Còi báo động vang lên, bị trừ 30s!");
+      }
+    }
+
+    // Xử lý đếm giờ Màn 3
+    let p3TimerId = null, p3Elapsed = 0, p3Start = 0;
+    function startP3Torch() {
+      p3Start = performance.now();
+      p3TimerId = setInterval(() => {
+        p3Elapsed = (performance.now() - p3Start) / 1000;
+        document.getElementById('p3-timer').innerText = `${p3Elapsed.toFixed(1)}s`;
+      }, 100);
+    }
+
+    function closePuzzle() {
+      document.getElementById('puzzle-modal').classList.add('hidden');
+      if (p3TimerId) clearInterval(p3TimerId);
+    }
+
+    // --- 5. HỆ THỐNG GIAO DIỆN & TIỆN ÍCH ---
+    function updateInventoryUI() {
+      const el = document.getElementById('inventory-list');
+      el.innerHTML = state.inventory.map(i => `<span class="bg-cyan-950 border border-cyan-500 text-cyan-300 text-[11px] px-2 py-0.5 rounded-full font-bold">${i}</span>`).join('');
+    }
+
+    function giveBadge(badgeName) {
+      if (!state.badges.includes(badgeName)) {
+        state.badges.push(badgeName);
+        const el = document.getElementById('badge-list');
+        el.innerHTML += `<span title="${badgeName}">🏅</span>`;
+      }
+    }
+
+    function updateEmotionUI() {
+      const badge = document.getElementById('emotion-badge');
+      if (state.emotion === 'happy') { badge.innerText = "😍 VUI MỪNG"; badge.className = "font-bold text-amber-300"; }
+      else if (state.emotion === 'panic') { badge.innerText = "😰 HOẢNG SỢ (MỒ HÔI)"; badge.className = "font-bold text-red-400"; }
+      else { badge.innerText = "😊 BÌNH THƯỜNG"; badge.className = "font-bold text-emerald-400"; }
+    }
+
+    function showMsg(txt) {
+      const box = document.getElementById('msg-box');
+      box.innerText = txt; box.style.opacity = '1';
+      setTimeout(() => box.style.opacity = '0', 2500);
+    }
+
+    function movePlayer(dir) {
+      if (dir === 'Up') player.y = Math.max(40, player.y - 20);
+      if (dir === 'Down') player.y = Math.min(canvas.height - 40, player.y + 20);
+      if (dir === 'Left') player.x = Math.max(40, player.x - 20);
+      if (dir === 'Right') player.x = Math.min(canvas.width - 40, player.x + 20);
+      checkProximity();
+    }
+
+    // Đồng hồ đếm ngược tổng
+    setInterval(() => {
+      state.timeLeft--;
+      const m = Math.floor(state.timeLeft / 60), s = state.timeLeft % 60;
+      document.getElementById('timer-display').innerText = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+      if (state.timeLeft < 180 && state.emotion !== 'panic') {
+        state.emotion = 'panic'; updateEmotionUI(); // Tự động hoảng sợ đổ mồ hôi khi còn dưới 3 phút
+      }
+    }, 1000);
+
+    // Chạy Game Loop
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
