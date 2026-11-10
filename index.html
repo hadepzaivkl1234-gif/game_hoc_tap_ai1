@@ -44,10 +44,10 @@
     .stage.active {
       display: block;
     }
-    /* Hiệu ứng nhân vật đi bộ qua các phòng */
+    /* Hiệu ứng nhân vật đi bộ qua hành lang khi chuyển phòng */
     @keyframes walkAnim {
       0% { transform: translateX(-180px) scaleX(1); }
-      50% { transform: translateX(50px) scaleX(1); }
+      50% { transform: translateX(40px) scaleX(1); }
       100% { transform: translateX(280px) scaleX(1); }
     }
     .walking-character {
@@ -55,7 +55,7 @@
     }
     @keyframes scrollBg {
       0% { background-position: 0 0; }
-      100% { background-position: -60px 0; }
+      100% { background-position: -50px 0; }
     }
   </style>
 </head>
@@ -111,15 +111,14 @@
   <!-- KHU VỰC TRÒ CHƠI CHÍNH -->
   <main id="game-container" class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-6 md:p-8 neon-border mb-6 relative overflow-hidden">
 
-    <!-- OVERLAY HIỆU ỨNG NHÂN VẬT DI CHUYỂN QUA CỬA / PHÒNG MỚI -->
+    <!-- OVERLAY HIỆU ỨNG NHÂN VẬT DI CHUYỂN QUA PHÒNG MỚI -->
     <div id="room-transition" class="absolute inset-0 bg-slate-950/95 z-30 flex flex-col items-center justify-center hidden">
       <div class="text-cyan-400 font-bold text-base mb-4 sci-fi-font tracking-widest animate-pulse" id="transition-text">
-        🔓 CỬA ĐÃ MỞ! ĐANG DI CHUYỂN SANG PHÒNG TIẾP THEO...
+        🔓 MỞ KHÓA THÀNH CÔNG! MINH ANH ĐANG CHẠY SANG PHÒNG TIẾP THEO...
       </div>
-      <!-- Hành lang sci-fi giả lập -->
+      <!-- Hành lang sci-fi giả lập cho nhân vật chạy -->
       <div class="w-full max-w-md h-32 bg-slate-900 border-y-2 border-cyan-500 relative overflow-hidden flex items-center justify-center shadow-inner">
-        <div class="absolute inset-0 opacity-30 bg-[linear-gradient(90deg,#00f2fe_1px,transparent_1px)] bg-[size:40px_100%]" style="animation: scrollBg 0.8s linear infinite;"></div>
-        <!-- Nhân vật Minh Anh đang đi/chạy -->
+        <div class="absolute inset-0 opacity-30 bg-[linear-gradient(90deg,#00f2fe_1px,transparent_1px)] bg-[size:40px_100%]" style="animation: scrollBg 0.7s linear infinite;"></div>
         <div id="walking-avatar" class="walking-character flex flex-col items-center">
           <div class="w-14 h-14 bg-cyan-600 rounded-full border-2 border-cyan-300 flex items-center justify-center shadow-lg">
             <svg viewBox="0 0 100 100" class="w-10 h-10">
@@ -129,7 +128,7 @@
               <path d="M 42 63 Q 50 73 58 63" stroke="#0f172a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
             </svg>
           </div>
-          <span class="text-[10px] text-cyan-300 font-bold mt-1 bg-black/70 px-2 py-0.5 rounded">Minh Anh đang chạy...</span>
+          <span class="text-[10px] text-cyan-300 font-bold mt-1 bg-black/70 px-2 py-0.5 rounded">Đang chạy qua cửa...</span>
         </div>
       </div>
     </div>
@@ -402,14 +401,14 @@
       state.m5.maxVal = 2; 
     }
 
-    // Hiệu ứng chuyển phòng với hoạt hình di chuyển
+    // Hiệu ứng chuyển phòng với nhân vật Minh Anh chạy qua hành lang
     function transitionToNextStage(nextStageNum) {
       playSound('door');
       const overlay = document.getElementById('room-transition');
       const textEl = document.getElementById('transition-text');
       const avatar = document.getElementById('walking-avatar');
 
-      textEl.innerText = `🔓 CỬA PHÒNG ${nextStageNum - 1} ĐÃ MỞ! MINH ANH ĐANG DI CHUYỂN SANG PHÒNG ${nextStageNum}...`;
+      textEl.innerText = `🔓 CỬA PHÒNG ${nextStageNum - 1} ĐÃ MỞ! MINH ANH ĐANG CHẠY SANG PHÒNG ${nextStageNum}...`;
       overlay.classList.remove('hidden');
       
       avatar.classList.remove('walking-character');
