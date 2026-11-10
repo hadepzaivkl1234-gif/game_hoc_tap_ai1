@@ -44,14 +44,18 @@
     .stage.active {
       display: block;
     }
-    /* Hiệu ứng nhân vật đi bộ */
+    /* Hiệu ứng nhân vật đi bộ qua các phòng */
     @keyframes walkAnim {
-      0% { transform: translateX(-150px) scaleX(1); }
-      50% { transform: translateX(100px) scaleX(1); }
-      100% { transform: translateX(350px) scaleX(1); }
+      0% { transform: translateX(-180px) scaleX(1); }
+      50% { transform: translateX(50px) scaleX(1); }
+      100% { transform: translateX(280px) scaleX(1); }
     }
     .walking-character {
-      animation: walkAnim 2.5s ease-in-out forwards;
+      animation: walkAnim 2.2s ease-in-out forwards;
+    }
+    @keyframes scrollBg {
+      0% { background-position: 0 0; }
+      100% { background-position: -60px 0; }
     }
   </style>
 </head>
@@ -107,25 +111,25 @@
   <!-- KHU VỰC TRÒ CHƠI CHÍNH -->
   <main id="game-container" class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-6 md:p-8 neon-border mb-6 relative overflow-hidden">
 
-    <!-- OVERLAY HIỆU ỨNG NHÂN VẬT DI CHUYỂN QUA PHÒNG KHÁC -->
+    <!-- OVERLAY HIỆU ỨNG NHÂN VẬT DI CHUYỂN QUA CỬA / PHÒNG MỚI -->
     <div id="room-transition" class="absolute inset-0 bg-slate-950/95 z-30 flex flex-col items-center justify-center hidden">
-      <div class="text-cyan-400 font-bold text-lg mb-4 sci-fi-font tracking-widest animate-pulse" id="transition-text">
-        🔓 ĐANG MỞ KHÓA CỬA SANG PHÒNG TIẾP THEO...
+      <div class="text-cyan-400 font-bold text-base mb-4 sci-fi-font tracking-widest animate-pulse" id="transition-text">
+        🔓 CỬA ĐÃ MỞ! ĐANG DI CHUYỂN SANG PHÒNG TIẾP THEO...
       </div>
       <!-- Hành lang sci-fi giả lập -->
-      <div class="w-full max-w-md h-36 bg-slate-900 border-y-2 border-cyan-500 relative overflow-hidden flex items-center justify-center">
-        <div class="absolute inset-0 opacity-20 bg-[linear-gradient(90deg,#00f2fe_1px,transparent_1px)] bg-[size:30px_100%]" style="animation: scrollBg 1s linear infinite;"></div>
-        <!-- Nhân vật di chuyển -->
+      <div class="w-full max-w-md h-32 bg-slate-900 border-y-2 border-cyan-500 relative overflow-hidden flex items-center justify-center shadow-inner">
+        <div class="absolute inset-0 opacity-30 bg-[linear-gradient(90deg,#00f2fe_1px,transparent_1px)] bg-[size:40px_100%]" style="animation: scrollBg 0.8s linear infinite;"></div>
+        <!-- Nhân vật Minh Anh đang đi/chạy -->
         <div id="walking-avatar" class="walking-character flex flex-col items-center">
-          <div class="w-16 h-16 bg-cyan-600 rounded-full border-2 border-cyan-300 flex items-center justify-center shadow-lg">
-            <svg viewBox="0 0 100 100" class="w-12 h-12">
+          <div class="w-14 h-14 bg-cyan-600 rounded-full border-2 border-cyan-300 flex items-center justify-center shadow-lg">
+            <svg viewBox="0 0 100 100" class="w-10 h-10">
               <circle cx="50" cy="55" r="22" fill="#ffd1b3"/>
               <circle cx="42" cy="55" r="2.5" fill="#0f172a"/>
               <circle cx="58" cy="55" r="2.5" fill="#0f172a"/>
               <path d="M 42 63 Q 50 73 58 63" stroke="#0f172a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
             </svg>
           </div>
-          <span class="text-xs text-cyan-300 font-bold mt-1 bg-black/60 px-2 rounded">Minh Anh đang chạy...</span>
+          <span class="text-[10px] text-cyan-300 font-bold mt-1 bg-black/70 px-2 py-0.5 rounded">Minh Anh đang chạy...</span>
         </div>
       </div>
     </div>
@@ -305,11 +309,11 @@
         osc.start(now); osc.stop(now + 0.3);
       } else if (type === 'door') {
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(120, now);
-        osc.frequency.linearRampToValueAtTime(300, now + 0.5);
+        osc.frequency.setValueAtTime(100, now);
+        osc.frequency.linearRampToValueAtTime(280, now + 0.4);
         gain.gain.setValueAtTime(0.15, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-        osc.start(now); osc.stop(now + 0.6);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+        osc.start(now); osc.stop(now + 0.5);
       }
     }
 
@@ -398,17 +402,16 @@
       state.m5.maxVal = 2; 
     }
 
-    // HIỆU ỨNG CHUYỂN PHÒNG KỊCH TÍNH (NHÂN VẬT DI CHUYỂN QUA CỬA)
+    // Hiệu ứng chuyển phòng với hoạt hình di chuyển
     function transitionToNextStage(nextStageNum) {
       playSound('door');
       const overlay = document.getElementById('room-transition');
       const textEl = document.getElementById('transition-text');
       const avatar = document.getElementById('walking-avatar');
 
-      textEl.innerText = `🔓 CỬA PHÒNG ${nextStageNum - 1} ĐÃ MỞ! MINH ANH ĐANG CHẠY SANG PHÒNG ${nextStageNum}...`;
+      textEl.innerText = `🔓 CỬA PHÒNG ${nextStageNum - 1} ĐÃ MỞ! MINH ANH ĐANG DI CHUYỂN SANG PHÒNG ${nextStageNum}...`;
       overlay.classList.remove('hidden');
       
-      // Reset animation
       avatar.classList.remove('walking-character');
       void avatar.offsetWidth; 
       avatar.classList.add('walking-character');
@@ -420,8 +423,8 @@
         document.getElementById('stage-indicator').innerText = `Màn ${nextStageNum} / 5`;
         
         overlay.classList.add('hidden');
-        speakMinhAnh('happy', `Đã vào Phòng Thí Nghiệm ${nextStageNum}! Cố lên nhé!`);
-      }, 2400);
+        speakMinhAnh('happy', `Đã bước vào Phòng Thí Nghiệm ${nextStageNum}! Tiếp tục giải mã nhé!`);
+      }, 2300);
     }
 
     // Xử lý Màn 1
@@ -571,7 +574,7 @@
     window.onload = () => {
       initStages();
       startTimer();
-      speakMinhAnh('neutral', "Hệ thống đã tạo dữ liệu ngẫu nhiên! Chúc cậu phá đảo thành công.");
+      speakMinhAnh('neutral', "Hệ thống đã tạo dữ liệu ngẫu nhiên cho 5 màn! Chúc cậu phá đảo thành công.");
     };
   </script>
 </body>
