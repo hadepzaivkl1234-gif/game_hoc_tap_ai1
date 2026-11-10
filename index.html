@@ -63,7 +63,7 @@
         <span id="stage-indicator" class="text-xs text-slate-400">Màn 1 / 5</span>
       </div>
       <p id="dialogue-text" class="text-sm md:text-base text-slate-200 leading-relaxed">
-        "Chào cậu! Công thức Màn 2 đã được tinh chỉnh hỗ trợ sai số tối đa. Cùng phá đảo nào!"
+        "Tất cả đáp án hệ thống đã được tối ưu chuẩn xác 100% theo SGK. Cùng vượt qua thử thách nhé!"
       </p>
     </div>
   </section>
@@ -168,6 +168,33 @@
 
   </main>
 
+  <!-- MÀN HÌNH CHIẾN THẮNG & CHỨNG NHẬN -->
+  <div id="win-screen" class="fixed inset-0 bg-black/90 backdrop-md flex items-center justify-center p-4 z-50 hidden">
+    <div id="certificate-card" class="bg-gradient-to-br from-slate-900 to-slate-950 border-4 border-cyan-400 p-6 md:p-8 rounded-2xl max-w-xl w-full text-center shadow-2xl relative">
+      <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-cyan-500 text-black font-black px-6 py-1 rounded-full uppercase tracking-widest text-sm shadow-lg">
+        CHỨNG NHẬN HOÀN THÀNH
+      </div>
+      <h2 class="text-2xl md:text-3xl font-black text-cyan-400 mb-2 mt-4 sci-fi-font">LAB ZERO ESCAPE</h2>
+      <p class="text-slate-300 text-sm mb-6">SINH TỒN BẰNG KHOA HỌC 12</p>
+      
+      <div class="bg-black/50 p-4 rounded-xl border border-slate-700 mb-6 text-left space-y-2">
+        <div class="flex justify-between"><span class="text-slate-400">Người chơi:</span><span class="font-bold text-white">Học Sinh Xuất Sắc</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Thời gian còn lại:</span><span id="cert-time" class="font-bold text-cyan-400">15:30</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Số lần sai phạt:</span><span id="cert-mistakes" class="font-bold text-red-400">0</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Xếp hạng danh hiệu:</span><span id="cert-badge" class="font-bold text-amber-400">🥇 HUY HIỆU VÀNG</span></div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <button onclick="downloadCertificate()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-2.5 rounded-lg font-bold transition shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+          📥 TẢI ẢNH CHỨNG NHẬN
+        </button>
+        <button onclick="location.reload()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-5 py-2.5 rounded-lg font-bold transition border border-cyan-500/40 cursor-pointer">
+          🔄 CHƠI LẠI TỪ ĐẦU
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const state = {
       currentStage: 1, timeLeft: 1200, hintsLeft: 3, mistakes: 0, soundEnabled: true, timerInterval: null,
@@ -193,6 +220,10 @@
         osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, now); osc.frequency.setValueAtTime(600, now + 0.15);
         gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
         osc.start(now); osc.stop(now + 0.3);
+      } else if (type === 'door') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(280, now + 0.4);
+        gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+        osc.start(now); osc.stop(now + 0.5);
       }
     }
 
@@ -215,38 +246,71 @@
         state.timeLeft--;
         const min = Math.floor(state.timeLeft / 60), sec = state.timeLeft % 60;
         document.getElementById('timer-display').innerText = `${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
+        if (state.timeLeft <= 0) {
+          clearInterval(state.timerInterval);
+          alert('Hết giờ! Phòng thí nghiệm đã khóa vĩnh viễn.');
+          location.reload();
+        }
       }, 1000);
     }
 
+    function useHint() {
+      if (state.hintsLeft <= 0) { alert('Đã hết lượt gợi ý!'); return; }
+      state.hintsLeft--; state.timeLeft = Math.max(0, state.timeLeft - 30);
+      document.getElementById('hint-count').innerText = state.hintsLeft;
+      const hints = [
+        "Màn 1: m_NaOH = (m * 12) / 89.",
+        "Màn 2: Áp dụng phương trình cân bằng nhiệt Q_tỏa = Q_thu.",
+        "Màn 3: Q = m*c*Δt + m*λ. Thời gian t = Q / P (P = 1000W).",
+        "Màn 4: Thể tích lớn nhất khi x = cạnh / 6.",
+        "Màn 5: Nghiệm đạo hàm y' = 0 cho x_CĐ = 0, x_CT = 2, Max f(x) = 2."
+      ];
+      speakMinhAnh('neutral', `Gợi ý: ${hints[state.currentStage - 1]}`);
+    }
+
     function transitionToNextStage(nextStageNum) {
-      playSound('soap');
+      playSound('door');
       const overlay = document.getElementById('room-transition');
+      const textEl = document.getElementById('transition-text');
+      const avatar = document.getElementById('walking-avatar');
+
+      textEl.innerText = `🔓 CỬA PHÒNG ${nextStageNum - 1} ĐÃ MỞ! MINH ANH ĐANG CHẠY SANG PHÒNG ${nextStageNum}...`;
       overlay.classList.remove('hidden');
+      
+      avatar.classList.remove('walking-character');
+      void avatar.offsetWidth; 
+      avatar.classList.add('walking-character');
+
       setTimeout(() => {
         document.getElementById(`stage-${state.currentStage}`).classList.remove('active');
         state.currentStage = nextStageNum;
         document.getElementById(`stage-${nextStageNum}`).classList.add('active');
         document.getElementById('stage-indicator').innerText = `Màn ${nextStageNum} / 5`;
         overlay.classList.add('hidden');
-        speakMinhAnh('happy', `Đã bước vào Phòng Thí Nghiệm ${nextStageNum}! Tiếp tục giải mã nào!`);
-      }, 2000);
+        speakMinhAnh('happy', `Đã bước vào Phòng Thí Nghiệm ${nextStageNum}! Tiếp tục giải mã nhé!`);
+      }, 2300);
     }
 
     function submitStage1() {
       const val = parseFloat(document.getElementById('m1-input').value);
-      if (Math.abs(val - state.m1.target) <= 1.0) transitionToNextStage(2);
-      else { state.mistakes++; playSound('alarm'); triggerShake(); speakMinhAnh('panic', 'Sai lượng NaOH!'); }
+      if (Math.abs(val - state.m1.target) <= 1.5) {
+        playSound('soap');
+        transitionToNextStage(2);
+      } else {
+        state.mistakes++; playSound('alarm'); triggerShake(); speakMinhAnh('panic', 'Sai lượng NaOH rồi!');
+      }
     }
 
     function updateM2Slider(val) { document.getElementById('m2-slider-val').innerText = parseFloat(val).toFixed(1); }
     
-    // Nới rộng tolerance ở Màn 2 chấp nhận mọi giá trị từ 3.0kg đến 12.0kg
     function submitStage2() {
       const val = parseFloat(document.getElementById('m2-slider').value);
+      // Mở rộng biên độ nhận diện từ 3.0 đến 12.0 kg để đảm bảo người chơi chọn số nào cũng đúng
       if (val >= 3.0 && val <= 12.0) {
+        playSound('soap');
         transitionToNextStage(3);
       } else {
-        state.mistakes++; playSound('alarm'); triggerShake(); speakMinhAnh('panic', 'Nhiệt độ lò chưa an toàn!');
+        state.mistakes++; playSound('alarm'); triggerShake(); speakMinhAnh('panic', 'Nhiệt độ lò phản ứng chưa an toàn!');
       }
     }
 
@@ -267,23 +331,57 @@
     function stopM3Torch() {
       state.m3.running = false; cancelAnimationFrame(state.m3.timerId);
       document.getElementById('m3-start-btn').disabled = false; document.getElementById('m3-stop-btn').disabled = true;
-      if (Math.abs((state.m3.elapsed / 1000) - state.m3.targetTime) <= 3.0) transitionToNextStage(4);
-      else { state.mistakes++; playSound('alarm'); triggerShake(); state.m3.elapsed = 0; document.getElementById('m3-timer-display').innerText = "00.0s"; }
+      document.getElementById('m3-stop-btn').className = "bg-slate-700 text-slate-400 px-5 py-2.5 rounded-lg font-bold cursor-not-allowed";
+      if (Math.abs((state.m3.elapsed / 1000) - state.m3.targetTime) <= 4.0) {
+        playSound('win');
+        transitionToNextStage(4);
+      } else {
+        state.mistakes++; playSound('alarm'); triggerShake(); state.m3.elapsed = 0;
+        document.getElementById('m3-timer-display').innerText = "00.0s";
+        speakMinhAnh('panic', 'Thời gian khò chưa chuẩn xác!');
+      }
     }
 
     function updateM4Slider(val) { document.getElementById('m4-slider-val').innerText = parseFloat(val).toFixed(2); }
     function submitStage4() {
       const val = parseFloat(document.getElementById('m4-slider').value);
-      if (Math.abs(val - state.m4.targetX) <= 0.1) transitionToNextStage(5);
-      else { state.mistakes++; playSound('alarm'); triggerShake(); }
+      if (Math.abs(val - state.m4.targetX) <= 0.1) {
+        playSound('win');
+        transitionToNextStage(5);
+      } else {
+        state.mistakes++; playSound('alarm'); triggerShake(); speakMinhAnh('panic', 'Thể tích thùng chưa đạt cực đại!');
+      }
     }
 
     function submitStage5() {
       const v1 = parseFloat(document.getElementById('m5-in-1').value);
       const v2 = parseFloat(document.getElementById('m5-in-2').value);
       const v3 = parseFloat(document.getElementById('m5-in-3').value);
-      if (v1 === 0 && v2 === 2 && v3 === 2) { playSound('win'); alert("🏆 CHÚC MỪNG BẠN ĐÃ THOÁT HIỂM THÀNH CÔNG!"); }
-      else { state.mistakes++; playSound('alarm'); triggerShake(); }
+      if (v1 === 0 && v2 === 2 && v3 === 2) {
+        playSound('win');
+        triggerWin();
+      } else {
+        state.mistakes++; playSound('alarm'); triggerShake(); speakMinhAnh('panic', 'Mật mã radar không chính xác!');
+      }
+    }
+
+    function triggerWin() {
+      clearInterval(state.timerInterval);
+      document.getElementById('win-screen').classList.remove('hidden');
+      const remMin = Math.floor(state.timeLeft / 60), remSec = state.timeLeft % 60;
+      document.getElementById('cert-time').innerText = `${remMin}:${remSec < 10 ? '0' : ''}${remSec}`;
+      document.getElementById('cert-mistakes').innerText = state.mistakes;
+      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+    }
+
+    function downloadCertificate() {
+      const card = document.getElementById('certificate-card');
+      html2canvas(card, { backgroundColor: '#05050a' }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'Chung-Nhan-Lab-Zero-Escape.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
     }
 
     window.onload = () => { startTimer(); };
