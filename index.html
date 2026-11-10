@@ -54,10 +54,10 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* HIỆU ỨNG CẢM XÚC CHO CHAMBER */
+    /* Hiệu ứng nước mắt rơi & Vui vẻ nhảy */
     @keyframes tearDrop {
       0% { transform: translateY(0) scale(0.8); opacity: 1; }
-      100% { transform: translateY(25px) scale(1.2); opacity: 0; }
+      100% { transform: translateY(20px) scale(1.2); opacity: 0; }
     }
     .tear-anim {
       animation: tearDrop 0.8s infinite linear;
@@ -103,22 +103,22 @@
     </div>
   </header>
 
-  <!-- NHÂN VẬT ĐỒNG HÀNH (CHAMBER) & HỘP THOẠI -->
+  <!-- NHÂN VẬT ĐỒNG HÀNH & HỘP THOẠI (CHAMBER) -->
   <section class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-4 neon-border mb-6 flex flex-col md:flex-row items-center gap-4 relative overflow-hidden">
     <!-- Avatar Chamber -->
-    <div id="avatar-container" class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-slate-950 rounded-full border-2 border-cyan-400 flex items-center justify-center overflow-hidden shadow-inner relative">
-      <img id="chamber-avatar-img" src="https://images.contentstack.io/v3/assets/bltb6530b271fcaa0b1/blt7204fa6992d2c184/5fa91c9849202574e1d71626/V_AGENTS_585x585_Chamber.png" alt="Chamber" class="w-full h-full object-cover object-top scale-125">
-      <!-- Vùng hiển thị hiệu ứng cảm xúc (nước mắt / biểu cảm) chồng lên ảnh -->
-      <div id="facial-expression" class="absolute inset-0 pointer-events-none flex items-center justify-center"></div>
+    <div id="avatar-container" class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-black/60 rounded-full border-2 border-cyan-400 flex items-center justify-center overflow-hidden shadow-inner relative">
+      <img id="chamber-img" src="https://media.valorant-api.com/agents/bb2a4828-46eb-8cd1-e765-1584fc195234/displayicon.png" alt="Chamber" class="w-full h-full object-cover transform scale-125 translate-y-2">
+      <!-- Overlay hiệu ứng cảm xúc -->
+      <div id="avatar-overlay" class="absolute inset-0 pointer-events-none"></div>
     </div>
     <!-- Hộp thoại -->
     <div class="flex-grow bg-black/50 border border-slate-700 rounded-lg p-3 w-full">
       <div class="flex justify-between items-center mb-1">
-        <span class="text-xs font-bold text-cyan-400 tracking-wider uppercase">TRỢ LÝ CHIẾN THUẬT: CHAMBER</span>
+        <span class="text-xs font-bold text-cyan-400 tracking-wider uppercase">TRỢ LÝ KHOA HỌC: CHAMBER</span>
         <span id="stage-indicator" class="text-xs text-slate-400">Màn 1 / 5</span>
       </div>
       <p id="dialogue-text" class="text-sm md:text-base text-slate-200 leading-relaxed">
-        "Bonjour! Phòng thí nghiệm này khóa toàn bộ rồi. Hãy dùng chính xác kiến thức Toán, Lý, Hóa 12 để phá mã cùng tôi nhé. Mọi thứ nằm trong tầm kiểm soát!"
+        "Chào cậu! Hệ thống phòng thí nghiệm bị khóa toàn bộ. Chúng ta phải vận dụng kiến thức Toán, Lý, Hóa 12 để phá mã từng cửa. Tớ sẽ hỗ trợ cậu hết mình!"
       </p>
     </div>
   </section>
@@ -334,34 +334,35 @@
       setTimeout(() => el.remove(), 1000);
     }
 
-    // Hiệu ứng biểu cảm Chamber (Khóc hu hu khi sai & Vui vẻ nhảy múa khi đúng)
+    // Đổi biểu cảm / trạng thái của Chamber (giữ nguyên tên hàm speakMinhAnh để tương thích toàn bộ code gốc)
     function speakMinhAnh(mood, text) {
-      const expr = document.getElementById('facial-expression');
       const textEl = document.getElementById('dialogue-text');
       const avatarContainer = document.getElementById('avatar-container');
-      const chamberImg = document.getElementById('chamber-avatar-img');
+      const chamberImg = document.getElementById('chamber-img');
+      const overlay = document.getElementById('avatar-overlay');
       textEl.innerText = `"${text}"`;
 
       // Xóa bỏ hiệu ứng cũ
       avatarContainer.classList.remove('happy-bounce', 'shake-anim');
-      expr.innerHTML = '';
+      overlay.innerHTML = '';
       chamberImg.style.filter = 'none';
 
       if (mood === 'happy') {
-        // Vui vẻ nhảy nhót + hiệu ứng trái tim
         avatarContainer.classList.add('happy-bounce');
+        chamberImg.style.filter = 'drop-shadow(0 0 10px #00f2fe) brightness(1.1)';
         showFloatingReaction('✨');
       } else if (mood === 'cry') {
-        // Khóc hu hu (Thêm hiệu ứng nước mắt rơi và hơi tối màu mặt)
-        chamberImg.style.filter = 'grayscale(30%) sepia(20%) hue-rotate(180deg)';
-        expr.innerHTML = `
-          <div class="absolute top-10 left-8 w-2 h-3 bg-cyan-400 rounded-full tear-anim"></div>
-          <div class="absolute top-10 right-8 w-2 h-3 bg-cyan-400 rounded-full tear-anim"></div>
+        chamberImg.style.filter = 'grayscale(0.3) sepia(0.5) hue-rotate(180deg)';
+        overlay.innerHTML = `
+          <div class="absolute inset-0 bg-blue-500/20"></div>
+          <div class="absolute top-8 left-6 w-2 h-3 bg-cyan-300 rounded-full tear-anim"></div>
+          <div class="absolute top-8 right-6 w-2 h-3 bg-cyan-300 rounded-full tear-anim" style="animation-delay: 0.3s"></div>
         `;
         showFloatingReaction('😭');
       } else if (mood === 'panic') {
-        chamberImg.style.filter = 'contrast(120%) brightness(90%)';
-        showFloatingReaction('⚡');
+        chamberImg.style.filter = 'drop-shadow(0 0 10px #ff3366)';
+      } else {
+        chamberImg.style.filter = 'none';
       }
     }
 
@@ -404,7 +405,7 @@
         "Màn 4: Thể tích lớn nhất khi x = a / 6.",
         "Màn 5: Đạo hàm y' = 0 tìm nghiệm x_CĐ, x_CT và so sánh giá trị tại các đầu mút [0, 3]."
       ];
-      speakMinhAnh('neutral', `Gợi ý từ Chamber: ${hints[state.currentStage - 1]}`);
+      speakMinhAnh('neutral', `Gợi ý: ${hints[state.currentStage - 1]}`);
     }
 
     // Khởi tạo các màn chơi với số liệu Random
@@ -441,10 +442,10 @@
       document.getElementById(`stage-${state.currentStage}`).classList.remove('active');
       state.currentStage = stageNum;
       document.getElementById(`stage-${stageNum}`).classList.add('active');
-      document.getElementById('stage-indicator').innerText = `Magnifique! Màn ${stageNum} / 5`;
+      document.getElementById('stage-indicator').innerText = `Màn ${stageNum} / 5`;
 
       if (stageNum <= 5) {
-        speakMinhAnh('happy', `Magnifique! Đã qua màn ${stageNum - 1}. Tiến lên phía trước thôi!`);
+        speakMinhAnh('happy', `Trận địa tuyệt vời! Đã qua màn ${stageNum - 1}. Cùng tiếp tục nào!`);
       }
     }
 
@@ -452,7 +453,7 @@
     function submitStage1() {
       const val = parseFloat(document.getElementById('m1-input').value);
       if (isNaN(val)) {
-        speakMinhAnh('cry', 'Mon dieu... Hãy nhập một con số chính xác để cứu lấy bản lề chứ!');
+        speakMinhAnh('cry', 'Mon dieu... Hãy nhập một con số cụ thể giúp tớ với!');
         return;
       }
       if (Math.abs(val - state.m1.target) <= 0.5) {
@@ -463,7 +464,7 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        speakMinhAnh('cry', 'Oh non... Sai lượng NaOH rồi! Khói bốc mù mịt, chúng ta bị trừ 30 giây rồi cậu ơi!');
+        speakMinhAnh('cry', 'Mon dieu! Sai lượng NaOH rồi, khói bốc lên ngập phòng và bị trừ 30 giây rồi cậu ơi!');
       }
     }
 
@@ -481,7 +482,7 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        speakMinhAnh('cry', 'Mon dieu... Lò phản ứng vẫn quá nóng! Sắp nổ đến nơi rồi, thật là thảm họa!');
+        speakMinhAnh('cry', 'Quá nóng rồi! Nhiệt độ lò phản ứng chưa đạt chuẩn an toàn đâu!');
       }
     }
 
@@ -525,7 +526,7 @@
         triggerShake();
         state.m3.elapsed = 0;
         document.getElementById('m3-timer-display').innerText = "00.0s";
-        speakMinhAnh('cry', 'Oh non... Canh thời gian sai mất rồi! Chốt chì lại đông cứng ngắc hoặc quá nhiệt tiêu đời rồi!');
+        speakMinhAnh('cry', 'Canh thời gian chưa chuẩn rồi! Chì lại đông cứng hoặc quá nhiệt mất thôi!');
       }
     }
 
@@ -543,7 +544,7 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        speakMinhAnh('cry', 'Mon dieu... Thể tích thùng chưa đạt cực đại, thiết kế này hỏng mất rồi!');
+        speakMinhAnh('cry', 'Thể tích thùng chưa đạt giá trị cực đại lớn nhất, nước đổ ra ngoài hết rồi!');
       }
     }
 
@@ -561,7 +562,7 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        speakMinhAnh('cry', 'Oh non... Mật mã radar sai hoàn toàn rồi! Cửa vẫn khóa chặt, chúng ta kẹt lại ở đây mất!');
+        speakMinhAnh('cry', 'Mật mã radar không chính xác! Cửa vẫn khóa chặt, chúng ta kẹt ở đây mất!');
       }
     }
 
@@ -599,7 +600,7 @@
     window.onload = () => {
       initStages();
       startTimer();
-      speakMinhAnh('neutral', "Bonjour! Hệ thống đã sẵn sàng. Hãy cùng tôi phá đảo phòng thí nghiệm này nhé!");
+      speakMinhAnh('neutral', "Hệ thống đã sẵn sàng, Chào mừng agent! Dữ liệu 5 màn đã được khởi tạo ngẫu nhiên.");
     };
   </script>
 </body>
