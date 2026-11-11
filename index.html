@@ -41,51 +41,38 @@
     .shake-anim {
       animation: shake 0.4s ease-in-out;
     }
+
+    /* ANIMATION CHUYỂN MÀN MƯỢT MÀ */
+    @keyframes slideInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(24px) scale(0.98);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
     .stage {
       display: none;
-      transition: all 0.5s ease-in-out;
+      opacity: 0;
     }
     .stage.active {
       display: block;
-      animation: fadeIn 0.5s ease-in-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      animation: slideInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* Hiệu ứng nước mắt rơi & Vui vẻ nhảy */
-    @keyframes tearDrop {
-      0% { transform: translateY(0) scale(0.8); opacity: 1; }
-      100% { transform: translateY(20px) scale(1.2); opacity: 0; }
-    }
-    .tear-anim {
-      animation: tearDrop 0.8s infinite linear;
-    }
-    @keyframes bounceHappy {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
-    .happy-bounce {
-      animation: bounceHappy 0.4s ease-in-out infinite;
-    }
-    .floating-emoji {
-      position: absolute;
-      font-size: 24px;
-      pointer-events: none;
-      animation: floatUp 1s ease-out forwards;
-      z-index: 50;
-    }
-    @keyframes floatUp {
-      0% { transform: translateY(0) scale(0.5); opacity: 1; }
-      100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+    /* Hiệu ứng mờ mượt cho hộp thoại Trợ lý */
+    #dialogue-text {
+      transition: opacity 0.2s ease-in-out;
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-6 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-gray-950 to-black">
 
   <!-- HEADER / HUD -->
-  <header class="w-full max-w-4xl flex flex-wrap items-center justify-between bg-slate-900/85 backdrop-md p-4 rounded-xl neon-border mb-6">
+  <header class="w-full max-w-4xl flex flex-wrap items-center justify-between bg-slate-900/80 backdrop-md p-4 rounded-xl neon-border mb-6">
     <div class="flex items-center space-x-3">
       <div class="w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
       <h1 class="text-xl md:text-2xl font-black text-cyan-400 tracking-wider">LAB ZERO ESCAPE</h1>
@@ -94,27 +81,41 @@
       <div class="text-sm md:text-base font-semibold bg-black/40 px-3 py-1 rounded border border-cyan-500/40">
         ⏱️ THỜI GIAN: <span id="timer-display" class="text-cyan-400 font-bold text-lg">20:00</span>
       </div>
-      <button onclick="useHint()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-sm font-bold transition shadow-lg flex items-center gap-1 cursor-pointer">
+      <button onclick="useHint()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-sm font-bold transition shadow-lg flex items-center gap-1">
         💡 GỢI Ý (-30s) <span id="hint-count" class="bg-black/50 px-1.5 rounded text-xs">3</span>
       </button>
-      <button id="audio-toggle" onclick="toggleAudio()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-3 py-1.5 rounded text-sm font-bold border border-cyan-500/40 transition cursor-pointer">
+      <button id="audio-toggle" onclick="toggleAudio()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-3 py-1.5 rounded text-sm font-bold border border-cyan-500/40 transition">
         🔊 ÂM THANH: BẬT
       </button>
     </div>
   </header>
 
-  <!-- NHÂN VẬT ĐỒNG HÀNH & HỘP THOẠI (CHAMBER) -->
-  <section class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-4 neon-border mb-6 flex flex-col md:flex-row items-center gap-4 relative overflow-hidden">
-    <!-- Avatar Chamber -->
-    <div id="avatar-container" class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-black/60 rounded-full border-2 border-cyan-400 flex items-center justify-center overflow-hidden shadow-inner relative">
-      <img id="chamber-img" src="https://media.valorant-api.com/agents/bb2a4828-46eb-8cd1-e765-1584fc195234/displayicon.png" alt="Chamber" class="w-full h-full object-cover transform scale-125 translate-y-2">
-      <!-- Overlay hiệu ứng cảm xúc -->
-      <div id="avatar-overlay" class="absolute inset-0 pointer-events-none"></div>
+  <!-- NHÂN VẬT ĐỒNG HÀNH & HỘP THOẠI -->
+  <section class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-4 neon-border mb-6 flex flex-col md:flex-row items-center gap-4">
+    <!-- SVG Avatar -->
+    <div class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-black/60 rounded-full border-2 border-cyan-400 flex items-center justify-center p-2 shadow-inner">
+      <svg id="minh-anh-avatar" viewBox="0 0 100 100" class="w-full h-full transition-all duration-300">
+        <!-- Tóc và áo đồng phục -->
+        <path d="M20 90 Q 20 40 50 40 Q 80 40 80 90 Z" fill="#1e293b"/>
+        <path d="M30 45 Q 50 20 70 45 Q 85 70 80 90 L 20 90 Q 15 70 30 45" fill="#0f172a"/>
+        <!-- Khuôn mặt -->
+        <circle cx="50" cy="55" r="22" fill="#ffd1b3"/>
+        <!-- Tóc mái -->
+        <path d="M 30 45 Q 50 35 70 45 Q 60 55 50 45 Q 40 55 30 45" fill="#3b2219"/>
+        <!-- Biểu cảm (được thay đổi bằng JS) -->
+        <g id="facial-expression">
+          <!-- Mắt bình thường -->
+          <circle cx="42" cy="55" r="2.5" fill="#0f172a"/>
+          <circle cx="58" cy="55" r="2.5" fill="#0f172a"/>
+          <!-- Miệng cười nhẹ -->
+          <path d="M 45 65 Q 50 70 55 65" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </g>
+      </svg>
     </div>
     <!-- Hộp thoại -->
     <div class="flex-grow bg-black/50 border border-slate-700 rounded-lg p-3 w-full">
       <div class="flex justify-between items-center mb-1">
-        <span class="text-xs font-bold text-cyan-400 tracking-wider uppercase">TRỢ LÝ KHOA HỌC: CHAMBER</span>
+        <span class="text-xs font-bold text-cyan-400 tracking-wider uppercase">TRỢ LÝ KHOA HỌC: MINH ANH</span>
         <span id="stage-indicator" class="text-xs text-slate-400">Màn 1 / 5</span>
       </div>
       <p id="dialogue-text" class="text-sm md:text-base text-slate-200 leading-relaxed">
@@ -124,7 +125,7 @@
   </section>
 
   <!-- KHU VỰC TRÒ CHƠI CHÍNH -->
-  <main id="game-container" class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-6 md:p-8 neon-border mb-6">
+  <main id="game-container" class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-6 md:p-8 neon-border mb-6 min-h-[380px] flex flex-col justify-center">
 
     <!-- MÀN 1: BẢN LỀ RỈ SÉT (HÓA 12 - NHẬP Ô ĐÁP ÁN) -->
     <div class="stage active" id="stage-1">
@@ -228,7 +229,7 @@
   </main>
 
   <!-- MÀN HÌNH CHIẾN THẮNG & CHỨNG NHẬN (ẨN BAN ĐẦU) -->
-  <div id="win-screen" class="fixed inset-0 bg-black/90 backdrop-md flex items-center justify-center p-4 z-50 hidden">
+  <div id="win-screen" class="fixed inset-0 bg-black/90 backdrop-md flex items-center justify-center p-4 z-50 hidden transition-opacity duration-500">
     <div id="certificate-card" class="bg-gradient-to-br from-slate-900 to-slate-950 border-4 border-cyan-400 p-6 md:p-8 rounded-2xl max-w-xl w-full text-center shadow-2xl relative">
       <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-cyan-500 text-black font-black px-6 py-1 rounded-full uppercase tracking-widest text-sm shadow-lg">
         CHỨNG NHẬN HOÀN THÀNH
@@ -322,47 +323,23 @@
       document.getElementById('audio-toggle').innerText = state.soundEnabled ? '🔊 ÂM THANH: BẬT' : '🔇 ÂM THANH: TẮT';
     }
 
-    // Hiệu ứng bay chữ/emoji tương tác
-    function showFloatingReaction(emoji) {
-      const container = document.getElementById('avatar-container');
-      const el = document.createElement('div');
-      el.className = 'floating-emoji';
-      el.innerText = emoji;
-      el.style.left = `${Math.random() * 40 + 20}px`;
-      el.style.top = '10px';
-      container.appendChild(el);
-      setTimeout(() => el.remove(), 1000);
-    }
-
-    // Đổi biểu cảm / trạng thái của Chamber
+    // Đổi biểu cảm Minh Anh với hiệu ứng mờ thoại
     function speakMinhAnh(mood, text) {
+      const expr = document.getElementById('facial-expression');
       const textEl = document.getElementById('dialogue-text');
-      const avatarContainer = document.getElementById('avatar-container');
-      const chamberImg = document.getElementById('chamber-img');
-      const overlay = document.getElementById('avatar-overlay');
-      textEl.innerText = `"${text}"`;
-
-      // Xóa bỏ hiệu ứng cũ
-      avatarContainer.classList.remove('happy-bounce', 'shake-anim');
-      overlay.innerHTML = '';
-      chamberImg.style.filter = 'none';
+      
+      textEl.style.opacity = '0';
+      setTimeout(() => {
+        textEl.innerText = `"${text}"`;
+        textEl.style.opacity = '1';
+      }, 150);
 
       if (mood === 'happy') {
-        avatarContainer.classList.add('happy-bounce');
-        chamberImg.style.filter = 'drop-shadow(0 0 10px #00f2fe) brightness(1.1)';
-        showFloatingReaction('✨');
-      } else if (mood === 'cry') {
-        chamberImg.style.filter = 'grayscale(0.3) sepia(0.5) hue-rotate(180deg)';
-        overlay.innerHTML = `
-          <div class="absolute inset-0 bg-blue-500/20"></div>
-          <div class="absolute top-8 left-6 w-2 h-3 bg-cyan-300 rounded-full tear-anim"></div>
-          <div class="absolute top-8 right-6 w-2 h-3 bg-cyan-300 rounded-full tear-anim" style="animation-delay: 0.3s"></div>
-        `;
-        showFloatingReaction('😭');
+        expr.innerHTML = `<circle cx="42" cy="55" r="2.5" fill="#0f172a"/><circle cx="58" cy="55" r="2.5" fill="#0f172a"/><path d="M 42 63 Q 50 73 58 63" stroke="#0f172a" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
       } else if (mood === 'panic') {
-        chamberImg.style.filter = 'drop-shadow(0 0 10px #ff3366)';
+        expr.innerHTML = `<circle cx="42" cy="55" r="3" fill="#0f172a"/><circle cx="58" cy="55" r="3" fill="#0f172a"/><circle cx="50" cy="67" r="3.5" fill="#0f172a"/>`;
       } else {
-        chamberImg.style.filter = 'none';
+        expr.innerHTML = `<circle cx="42" cy="55" r="2.5" fill="#0f172a"/><circle cx="58" cy="55" r="2.5" fill="#0f172a"/><path d="M 45 65 Q 50 70 55 65" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>`;
       }
     }
 
@@ -410,11 +387,13 @@
 
     // Khởi tạo các màn chơi với số liệu Random
     function initStages() {
+      // Màn 1
       const possibleM1 = [445, 712, 890, 1068, 1335];
       state.m1.m = possibleM1[Math.floor(Math.random() * possibleM1.length)];
-      state.m1.target = (state.m1.m * 12) / 89;
+      state.m1.target = (state.m1.m * 12) / 89; 
       document.getElementById('m1-mass').innerText = state.m1.m;
 
+      // Màn 2
       state.m2.mass = [5, 10, 15][Math.floor(Math.random() * 3)];
       state.m2.t1 = [380, 400, 420][Math.floor(Math.random() * 3)];
       const tCuC = state.m2.t1 - 273;
@@ -422,30 +401,40 @@
       document.getElementById('m2-copper-mass').innerText = state.m2.mass;
       document.getElementById('m2-temp').innerText = state.m2.t1;
 
+      // Màn 3
       state.m3.mass = [0.4, 0.5, 0.6][Math.floor(Math.random() * 3)];
       state.m3.targetTime = state.m3.mass * 64; 
       document.getElementById('m3-mass').innerText = state.m3.mass;
 
+      // Màn 4
       state.m4.side = [1.2, 1.8, 2.4][Math.floor(Math.random() * 3)];
       state.m4.targetX = parseFloat((state.m4.side / 6).toFixed(2));
       document.getElementById('m4-side').innerText = state.m4.side;
       const slider4 = document.getElementById('m4-slider');
       slider4.max = (state.m4.side / 2 - 0.1).toFixed(2);
 
+      // Màn 5 (Cố định hàm đơn giản y = x^3 - 3x^2 + 2)
       state.m5.x1 = 0; 
       state.m5.x2 = 2; 
       state.m5.maxVal = 2; 
     }
 
-    // Chuyển màn
+    // XỬ LÝ CHUYỂN MÀN CHƠI (CÓ ANIMATION SLIDE IN)
     function nextStage(stageNum) {
-      document.getElementById(`stage-${state.currentStage}`).classList.remove('active');
+      const currentEl = document.getElementById(`stage-${state.currentStage}`);
+      const nextEl = document.getElementById(`stage-${stageNum}`);
+
+      currentEl.classList.remove('active');
       state.currentStage = stageNum;
-      document.getElementById(`stage-${stageNum}`).classList.add('active');
+      
+      setTimeout(() => {
+        nextEl.classList.add('active');
+      }, 40);
+
       document.getElementById('stage-indicator').innerText = `Màn ${stageNum} / 5`;
 
       if (stageNum <= 5) {
-        speakMinhAnh('happy', `Trận địa tuyệt vời! Đã qua màn ${stageNum - 1}. Cùng tiếp tục nào!`);
+        speakMinhAnh('happy', `Tuyệt vời! Đã qua màn ${stageNum - 1}. Tiếp tục thử thách tiếp theo nhé!`);
       }
     }
 
@@ -453,7 +442,7 @@
     function submitStage1() {
       const val = parseFloat(document.getElementById('m1-input').value);
       if (isNaN(val)) {
-        speakMinhAnh('cry', 'Mon dieu... Hãy nhập một con số cụ thể giúp tớ với!');
+        speakMinhAnh('panic', 'Hãy nhập một con số cụ thể!');
         return;
       }
       if (Math.abs(val - state.m1.target) <= 0.5) {
@@ -464,7 +453,7 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        speakMinhAnh('cry', 'Mon dieu! Sai lượng NaOH rồi, khói bốc lên ngập phòng và bị trừ 30 giây rồi cậu ơi!');
+        speakMinhAnh('panic', 'Sai lượng NaOH rồi! Khói tím bốc lên, bị trừ 30 giây!');
       }
     }
 
@@ -482,7 +471,7 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        speakMinhAnh('cry', 'Quá nóng rồi! Nhiệt độ lò phản ứng chưa đạt chuẩn an toàn đâu!');
+        speakMinhAnh('panic', 'Nhiệt độ lò phản ứng chưa đạt chuẩn an toàn! Thử lại nhé.');
       }
     }
 
@@ -526,7 +515,7 @@
         triggerShake();
         state.m3.elapsed = 0;
         document.getElementById('m3-timer-display').innerText = "00.0s";
-        speakMinhAnh('cry', 'Canh thời gian chưa chuẩn rồi! Chì lại đông cứng hoặc quá nhiệt mất thôi!');
+        speakMinhAnh('panic', 'Canh thời gian chưa chuẩn! Chì đông cứng hoặc quá nhiệt!');
       }
     }
 
@@ -544,7 +533,7 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        speakMinhAnh('cry', 'Thể tích thùng chưa đạt giá trị cực đại lớn nhất, nước đổ ra ngoài hết rồi!');
+        speakMinhAnh('panic', 'Thể tích thùng chưa đạt giá trị cực đại lớn nhất!');
       }
     }
 
@@ -562,14 +551,15 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        speakMinhAnh('cry', 'Mật mã radar không chính xác! Cửa vẫn khóa chặt, chúng ta kẹt ở đây mất!');
+        speakMinhAnh('panic', 'Mật mã radar không chính xác! Kiểm tra lại hoành độ cực trị và GTLN.');
       }
     }
 
     // Màn hình chiến thắng
     function triggerWin() {
       clearInterval(state.timerInterval);
-      document.getElementById('win-screen').classList.remove('hidden');
+      const winScreen = document.getElementById('win-screen');
+      winScreen.classList.remove('hidden');
       
       const remMin = Math.floor(state.timeLeft / 60);
       const remSec = state.timeLeft % 60;
@@ -600,7 +590,7 @@
     window.onload = () => {
       initStages();
       startTimer();
-      speakMinhAnh('neutral', "Hệ thống đã sẵn sàng, Chào mừng agent! Dữ liệu 5 màn đã được khởi tạo ngẫu nhiên.");
+      speakMinhAnh('neutral', "Hệ thống đã tạo dữ liệu ngẫu nhiên cho 5 màn! Chúc cậu phá đảo thành công.");
     };
   </script>
 </body>
