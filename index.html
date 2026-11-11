@@ -63,9 +63,14 @@
       animation: slideInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* Hiệu ứng mờ mượt cho hộp thoại Trợ lý */
-    #dialogue-text {
+    /* Hiệu ứng mờ thoại cho hộp thoại và avatar */
+    #dialogue-text, #assistant-avatar-img {
       transition: opacity 0.2s ease-in-out;
+    }
+
+    /* Giữ avatar luôn có độ mờ 1 khi không trong transition */
+    #assistant-avatar-img {
+      opacity: 1;
     }
   </style>
 </head>
@@ -92,25 +97,9 @@
 
   <!-- NHÂN VẬT ĐỒNG HÀNH & HỘP THOẠI -->
   <section class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-4 neon-border mb-6 flex flex-col md:flex-row items-center gap-4">
-    <!-- SVG Avatar -->
-    <div class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-black/60 rounded-full border-2 border-cyan-400 flex items-center justify-center p-2 shadow-inner">
-      <svg id="minh-anh-avatar" viewBox="0 0 100 100" class="w-full h-full transition-all duration-300">
-        <!-- Tóc và áo đồng phục -->
-        <path d="M20 90 Q 20 40 50 40 Q 80 40 80 90 Z" fill="#1e293b"/>
-        <path d="M30 45 Q 50 20 70 45 Q 85 70 80 90 L 20 90 Q 15 70 30 45" fill="#0f172a"/>
-        <!-- Khuôn mặt -->
-        <circle cx="50" cy="55" r="22" fill="#ffd1b3"/>
-        <!-- Tóc mái -->
-        <path d="M 30 45 Q 50 35 70 45 Q 60 55 50 45 Q 40 55 30 45" fill="#3b2219"/>
-        <!-- Biểu cảm (được thay đổi bằng JS) -->
-        <g id="facial-expression">
-          <!-- Mắt bình thường -->
-          <circle cx="42" cy="55" r="2.5" fill="#0f172a"/>
-          <circle cx="58" cy="55" r="2.5" fill="#0f172a"/>
-          <!-- Miệng cười nhẹ -->
-          <path d="M 45 65 Q 50 70 55 65" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>
-        </g>
-      </svg>
+    <!-- Hình ảnh Avatar Mới -->
+    <div class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-black/60 rounded-full border-2 border-cyan-400 flex items-center justify-center p-2 shadow-inner transition-all duration-300">
+        <img id="assistant-avatar-img" src="image_0.png" alt="Assistant Avatar" class="w-full h-full object-cover rounded-full">
     </div>
     <!-- Hộp thoại -->
     <div class="flex-grow bg-black/50 border border-slate-700 rounded-lg p-3 w-full">
@@ -323,24 +312,21 @@
       document.getElementById('audio-toggle').innerText = state.soundEnabled ? '🔊 ÂM THANH: BẬT' : '🔇 ÂM THANH: TẮT';
     }
 
-    // Đổi biểu cảm Minh Anh với hiệu ứng mờ thoại
-    function speakMinhAnh(mood, text) {
-      const expr = document.getElementById('facial-expression');
+    // Đổi hộp thoại với hiệu ứng mờ thoại, và tùy chọn mờ avatar
+    //Mood đã được loại bỏ khỏi logic vì chúng ta không còn sử dụng SVG biểu cảm nữa.
+    function speakMinhAnh(text) {
       const textEl = document.getElementById('dialogue-text');
+      const avatarImgEl = document.getElementById('assistant-avatar-img');
       
+      // Mờ hộp thoại và avatar
       textEl.style.opacity = '0';
+      avatarImgEl.style.opacity = '0';
       setTimeout(() => {
         textEl.innerText = `"${text}"`;
+        // Hiện lại hộp thoại và avatar
         textEl.style.opacity = '1';
+        avatarImgEl.style.opacity = '1';
       }, 150);
-
-      if (mood === 'happy') {
-        expr.innerHTML = `<circle cx="42" cy="55" r="2.5" fill="#0f172a"/><circle cx="58" cy="55" r="2.5" fill="#0f172a"/><path d="M 42 63 Q 50 73 58 63" stroke="#0f172a" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
-      } else if (mood === 'panic') {
-        expr.innerHTML = `<circle cx="42" cy="55" r="3" fill="#0f172a"/><circle cx="58" cy="55" r="3" fill="#0f172a"/><circle cx="50" cy="67" r="3.5" fill="#0f172a"/>`;
-      } else {
-        expr.innerHTML = `<circle cx="42" cy="55" r="2.5" fill="#0f172a"/><circle cx="58" cy="55" r="2.5" fill="#0f172a"/><path d="M 45 65 Q 50 70 55 65" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>`;
-      }
     }
 
     // Hiệu ứng rung màn hình
@@ -382,7 +368,8 @@
         "Màn 4: Thể tích lớn nhất khi x = a / 6.",
         "Màn 5: Đạo hàm y' = 0 tìm nghiệm x_CĐ, x_CT và so sánh giá trị tại các đầu mút [0, 3]."
       ];
-      speakMinhAnh('neutral', `Gợi ý: ${hints[state.currentStage - 1]}`);
+      //Đã loại bỏ tham số mood
+      speakMinhAnh(`Gợi ý: ${hints[state.currentStage - 1]}`);
     }
 
     // Khởi tạo các màn chơi với số liệu Random
@@ -434,7 +421,8 @@
       document.getElementById('stage-indicator').innerText = `Màn ${stageNum} / 5`;
 
       if (stageNum <= 5) {
-        speakMinhAnh('happy', `Tuyệt vời! Đã qua màn ${stageNum - 1}. Tiếp tục thử thách tiếp theo nhé!`);
+        //Đã loại bỏ tham số mood
+        speakMinhAnh(`Tuyệt vời! Đã qua màn ${stageNum - 1}. Tiếp tục thử thách tiếp theo nhé!`);
       }
     }
 
@@ -442,7 +430,8 @@
     function submitStage1() {
       const val = parseFloat(document.getElementById('m1-input').value);
       if (isNaN(val)) {
-        speakMinhAnh('panic', 'Hãy nhập một con số cụ thể!');
+        //Đã loại bỏ tham số mood
+        speakMinhAnh('Hãy nhập một con số cụ thể!');
         return;
       }
       if (Math.abs(val - state.m1.target) <= 0.5) {
@@ -453,7 +442,8 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        speakMinhAnh('panic', 'Sai lượng NaOH rồi! Khói tím bốc lên, bị trừ 30 giây!');
+        //Đã loại bỏ tham số mood
+        speakMinhAnh('Sai lượng NaOH rồi! Khói tím bốc lên, bị trừ 30 giây!');
       }
     }
 
@@ -471,7 +461,8 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        speakMinhAnh('panic', 'Nhiệt độ lò phản ứng chưa đạt chuẩn an toàn! Thử lại nhé.');
+        //Đã loại bỏ tham số mood
+        speakMinhAnh('Nhiệt độ lò phản ứng chưa đạt chuẩn an toàn! Thử lại nhé.');
       }
     }
 
@@ -515,7 +506,8 @@
         triggerShake();
         state.m3.elapsed = 0;
         document.getElementById('m3-timer-display').innerText = "00.0s";
-        speakMinhAnh('panic', 'Canh thời gian chưa chuẩn! Chì đông cứng hoặc quá nhiệt!');
+        //Đã loại bỏ tham số mood
+        speakMinhAnh('Canh thời gian chưa chuẩn! Chì đông cứng hoặc quá nhiệt!');
       }
     }
 
@@ -533,7 +525,8 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        speakMinhAnh('panic', 'Thể tích thùng chưa đạt giá trị cực đại lớn nhất!');
+        //Đã loại bỏ tham số mood
+        speakMinhAnh('Thể tích thùng chưa đạt giá trị cực đại lớn nhất!');
       }
     }
 
@@ -551,7 +544,8 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        speakMinhAnh('panic', 'Mật mã radar không chính xác! Kiểm tra lại hoành độ cực trị và GTLN.');
+        //Đã loại bỏ tham số mood
+        speakMinhAnh('Mật mã radar không chính xác! Kiểm tra lại hoành độ cực trị và GTLN.');
       }
     }
 
@@ -590,7 +584,8 @@
     window.onload = () => {
       initStages();
       startTimer();
-      speakMinhAnh('neutral', "Hệ thống đã tạo dữ liệu ngẫu nhiên cho 5 màn! Chúc cậu phá đảo thành công.");
+      //Đã loại bỏ tham số mood
+      speakMinhAnh("Hệ thống đã tạo dữ liệu ngẫu nhiên cho 5 màn! Chúc cậu phá đảo thành công.");
     };
   </script>
 </body>
