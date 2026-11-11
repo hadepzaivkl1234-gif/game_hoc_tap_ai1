@@ -41,36 +41,11 @@
     .shake-anim {
       animation: shake 0.4s ease-in-out;
     }
-
-    /* ANIMATION CHUYỂN MÀN MƯỢT MÀ */
-    @keyframes slideInUp {
-      0% {
-        opacity: 0;
-        transform: translateY(24px) scale(0.98);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
     .stage {
       display: none;
-      opacity: 0;
     }
     .stage.active {
       display: block;
-      animation: slideInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    /* Hiệu ứng mờ thoại cho hộp thoại và avatar */
-    #dialogue-text, #assistant-avatar-img {
-      transition: opacity 0.2s ease-in-out;
-    }
-
-    /* Giữ avatar luôn có độ mờ 1 khi không trong transition */
-    #assistant-avatar-img {
-      opacity: 1;
     }
   </style>
 </head>
@@ -95,26 +70,28 @@
     </div>
   </header>
 
-  <!-- NHÂN VẬT ĐỒNG HÀNH & HỘP THOẠI -->
+  <!-- NHÂN VẬT ĐỒNG HÀNH CHEMBER & HỘP THOẠI -->
   <section class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-4 neon-border mb-6 flex flex-col md:flex-row items-center gap-4">
-    <!-- Hình ảnh Avatar Mới -->
-    <div class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-black/60 rounded-full border-2 border-cyan-400 flex items-center justify-center p-2 shadow-inner transition-all duration-300">
-        <img id="assistant-avatar-img" src="image_0.png" alt="Assistant Avatar" class="w-full h-full object-cover rounded-full">
+    <!-- Updated Avatar with image_0.png (Chamber) -->
+    <div class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-black/60 rounded-full border-2 border-cyan-400 flex items-center justify-center p-0.5 shadow-inner overflow-hidden">
+      <img src="image_0.png" alt="Chamber Avatar" class="w-full h-full object-cover">
     </div>
     <!-- Hộp thoại -->
     <div class="flex-grow bg-black/50 border border-slate-700 rounded-lg p-3 w-full">
       <div class="flex justify-between items-center mb-1">
-        <span class="text-xs font-bold text-cyan-400 tracking-wider uppercase">TRỢ LÝ KHOA HỌC: MINH ANH</span>
+        <!-- Name Updated to CHAMBER -->
+        <span class="text-xs font-bold text-cyan-400 tracking-wider uppercase">TRỢ LÝ VŨ KHÍ: CHAMBER</span>
         <span id="stage-indicator" class="text-xs text-slate-400">Màn 1 / 5</span>
       </div>
+      <!-- Initial dialogue updated to Chamber style -->
       <p id="dialogue-text" class="text-sm md:text-base text-slate-200 leading-relaxed">
-        "Chào cậu! Hệ thống phòng thí nghiệm bị khóa toàn bộ. Chúng ta phải vận dụng kiến thức Toán, Lý, Hóa 12 để phá mã từng cửa. Tớ sẽ hỗ trợ cậu hết mình!"
+        "Bonjour, *my friend*[cite: 1.1.1]. Bố cục nơi này khá tinh tế[cite: 1.1.1], nhưng hệ thống bảo mật thì... quá lỗi thời. Cần kiến thức lớp 12 để phá mã à? *Enfin*[cite: 1.1.1, 1.3.1], việc này sẽ 'simple như bonjour'[cite: 1.1.1] khi có tôi ở đây. Bắt đầu thôi chứ?"
       </p>
     </div>
   </section>
 
   <!-- KHU VỰC TRÒ CHƠI CHÍNH -->
-  <main id="game-container" class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-6 md:p-8 neon-border mb-6 min-h-[380px] flex flex-col justify-center">
+  <main id="game-container" class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-6 md:p-8 neon-border mb-6">
 
     <!-- MÀN 1: BẢN LỀ RỈ SÉT (HÓA 12 - NHẬP Ô ĐÁP ÁN) -->
     <div class="stage active" id="stage-1">
@@ -218,7 +195,7 @@
   </main>
 
   <!-- MÀN HÌNH CHIẾN THẮNG & CHỨNG NHẬN (ẨN BAN ĐẦU) -->
-  <div id="win-screen" class="fixed inset-0 bg-black/90 backdrop-md flex items-center justify-center p-4 z-50 hidden transition-opacity duration-500">
+  <div id="win-screen" class="fixed inset-0 bg-black/90 backdrop-md flex items-center justify-center p-4 z-50 hidden">
     <div id="certificate-card" class="bg-gradient-to-br from-slate-900 to-slate-950 border-4 border-cyan-400 p-6 md:p-8 rounded-2xl max-w-xl w-full text-center shadow-2xl relative">
       <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-cyan-500 text-black font-black px-6 py-1 rounded-full uppercase tracking-widest text-sm shadow-lg">
         CHỨNG NHẬN HOÀN THÀNH
@@ -312,21 +289,10 @@
       document.getElementById('audio-toggle').innerText = state.soundEnabled ? '🔊 ÂM THANH: BẬT' : '🔇 ÂM THANH: TẮT';
     }
 
-    // Đổi hộp thoại với hiệu ứng mờ thoại, và tùy chọn mờ avatar
-    //Mood đã được loại bỏ khỏi logic vì chúng ta không còn sử dụng SVG biểu cảm nữa.
-    function speakMinhAnh(text) {
+    // Đổi hộp thoại Chamber (Đã loại bỏ mood và logic biểu cảm cũ)
+    function speakChamber(text) {
       const textEl = document.getElementById('dialogue-text');
-      const avatarImgEl = document.getElementById('assistant-avatar-img');
-      
-      // Mờ hộp thoại và avatar
-      textEl.style.opacity = '0';
-      avatarImgEl.style.opacity = '0';
-      setTimeout(() => {
-        textEl.innerText = `"${text}"`;
-        // Hiện lại hộp thoại và avatar
-        textEl.style.opacity = '1';
-        avatarImgEl.style.opacity = '1';
-      }, 150);
+      textEl.innerText = `"${text}"`;
     }
 
     // Hiệu ứng rung màn hình
@@ -351,7 +317,7 @@
       }, 1000);
     }
 
-    // Gợi ý
+    // Gợi ý (Updated dialogues with Chamber's style)
     function useHint() {
       if (state.hintsLeft <= 0) {
         alert('Đã hết lượt gợi ý!');
@@ -362,22 +328,21 @@
       document.getElementById('hint-count').innerText = state.hintsLeft;
       
       const hints = [
-        "Màn 1: Số mol NaOH gấp 3 lần số mol Tristearin. m_NaOH = (m * 12) / 89.",
-        "Màn 2: Áp dụng phương trình cân bằng nhiệt Q_tỏa = Q_thu để tính khối lượng nước.",
-        "Màn 3: Q = m*c*Δt + m*λ. Thời gian t = Q / P (với P = 1000W).",
-        "Màn 4: Thể tích lớn nhất khi x = a / 6.",
-        "Màn 5: Đạo hàm y' = 0 tìm nghiệm x_CĐ, x_CT và so sánh giá trị tại các đầu mút [0, 3]."
+        "Màn 1: Cần 3 mol NaOH cho 1 mol Tristearin, *my friend*[cite: 1.1.1]. Khối lượng NaOH bằng m nhân 12 rồi chia 89.",
+        "Màn 2: Cân bằng nhiệt Q tỏa bằng Q thu. Nước sẽ làm mát khối đồng đó theo tính toán của cậu.",
+        "Màn 3: Tổng nhiệt Q là nhiệt làm nóng chì cộng nhiệt nóng chảy λ. Thời gian t bằng Q chia P (1000W). Canh cho chuẩn!",
+        "Màn 4: Thể tích cực đại khi cạnh cắt x bằng một phần sáu cạnh tấm tôn Ban đầu. Bài toán thiết kế *perfect*[cite: 1.1.1].",
+        "Màn 5: Tìm nghiệm đạo hàm y'=0 để có tọa độ cực trị. GTLN f(3) là mật mã cuối cùng để thoát."
       ];
-      //Đã loại bỏ tham số mood
-      speakMinhAnh(`Gợi ý: ${hints[state.currentStage - 1]}`);
+      speakChamber(`Gợi ý đây: ${hints[state.currentStage - 1]}`);
     }
 
     // Khởi tạo các màn chơi với số liệu Random
     function initStages() {
-      // Màn 1
+      // Màn 1 (Đã sửa lại công thức chia đúng cho 890)
       const possibleM1 = [445, 712, 890, 1068, 1335];
       state.m1.m = possibleM1[Math.floor(Math.random() * possibleM1.length)];
-      state.m1.target = (state.m1.m * 12) / 89; 
+      state.m1.target = (state.m1.m * 12) / 89; // Sửa từ 120 thành 12
       document.getElementById('m1-mass').innerText = state.m1.m;
 
       // Màn 2
@@ -406,32 +371,23 @@
       state.m5.maxVal = 2; 
     }
 
-    // XỬ LÝ CHUYỂN MÀN CHƠI (CÓ ANIMATION SLIDE IN)
+    // Chuyển màn (Updated dialogue with Chamber's style)
     function nextStage(stageNum) {
-      const currentEl = document.getElementById(`stage-${state.currentStage}`);
-      const nextEl = document.getElementById(`stage-${stageNum}`);
-
-      currentEl.classList.remove('active');
+      document.getElementById(`stage-${state.currentStage}`).classList.remove('active');
       state.currentStage = stageNum;
-      
-      setTimeout(() => {
-        nextEl.classList.add('active');
-      }, 40);
-
+      document.getElementById(`stage-${stageNum}`).classList.add('active');
       document.getElementById('stage-indicator').innerText = `Màn ${stageNum} / 5`;
 
       if (stageNum <= 5) {
-        //Đã loại bỏ tham số mood
-        speakMinhAnh(`Tuyệt vời! Đã qua màn ${stageNum - 1}. Tiếp tục thử thách tiếp theo nhé!`);
+        speakChamber(`*Bien joué*[cite: 1.1.1], cậu làm tôi ấn tượng đấy. Đã qua màn ${stageNum - 1}. Giờ là lúc cho thử thách tiếp theo.`);
       }
     }
 
-    // Xử lý Màn 1 (Input NaOH)
+    // Xử lý Màn 1 (Input NaOH) (Updated dialogue with Chamber's style)
     function submitStage1() {
       const val = parseFloat(document.getElementById('m1-input').value);
       if (isNaN(val)) {
-        //Đã loại bỏ tham số mood
-        speakMinhAnh('Hãy nhập một con số cụ thể!');
+        speakChamber('*My friend*[cite: 1.1.1], làm ơn nhập một con số cụ thể.');
         return;
       }
       if (Math.abs(val - state.m1.target) <= 0.5) {
@@ -442,12 +398,11 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        //Đã loại bỏ tham số mood
-        speakMinhAnh('Sai lượng NaOH rồi! Khói tím bốc lên, bị trừ 30 giây!');
+        speakChamber('Lượng NaOH sai rồi. *Terrible*[cite: 1.1.1], chúng ta vừa bị trừ 30 giây quý giá.');
       }
     }
 
-    // Xử lý Màn 2 (Slider nước)
+    // Xử lý Màn 2 (Slider nước) (Updated dialogue with Chamber's style)
     function updateM2Slider(val) {
       document.getElementById('m2-slider-val').innerText = parseFloat(val).toFixed(1);
     }
@@ -461,12 +416,11 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        //Đã loại bỏ tham số mood
-        speakMinhAnh('Nhiệt độ lò phản ứng chưa đạt chuẩn an toàn! Thử lại nhé.');
+        speakChamber('Nhiệt độ chưa đạt chuẩn an toàn. Cậu cần tính toán kỹ hơn về lượng nước này.');
       }
     }
 
-    // Xử lý Màn 3 (Đèn khò)
+    // Xử lý Màn 3 (Đèn khò) (Updated dialogue with Chamber's style)
     function startM3Torch() {
       state.m3.running = true;
       state.m3.startTime = performance.now() - state.m3.elapsed;
@@ -506,12 +460,11 @@
         triggerShake();
         state.m3.elapsed = 0;
         document.getElementById('m3-timer-display').innerText = "00.0s";
-        //Đã loại bỏ tham số mood
-        speakMinhAnh('Canh thời gian chưa chuẩn! Chì đông cứng hoặc quá nhiệt!');
+        speakChamber('Trật lết! Canh thời gian là một nghệ thuật, và cậu cần phải *perfect*[cite: 1.1.1]. Thử lại!');
       }
     }
 
-    // Xử lý Màn 4 (Slider x thùng tôn)
+    // Xử lý Màn 4 (Slider x thùng tôn) (Updated dialogue with Chamber's style)
     function updateM4Slider(val) {
       document.getElementById('m4-slider-val').innerText = parseFloat(val).toFixed(2);
     }
@@ -525,12 +478,11 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        //Đã loại bỏ tham số mood
-        speakMinhAnh('Thể tích thùng chưa đạt giá trị cực đại lớn nhất!');
+        speakChamber('Thể tích này chưa phải là lớn nhất. Một thiết kế lỗi, *my friend*[cite: 1.1.1].');
       }
     }
 
-    // Xử lý Màn 5 (Mật mã Radar)
+    // Xử lý Màn 5 (Mật mã Radar) (Updated dialogue with Chamber's style)
     function submitStage5() {
       const v1 = parseFloat(document.getElementById('m5-in-1').value);
       const v2 = parseFloat(document.getElementById('m5-in-2').value);
@@ -544,16 +496,14 @@
         state.timeLeft = Math.max(0, state.timeLeft - 30);
         playSound('alarm');
         triggerShake();
-        //Đã loại bỏ tham số mood
-        speakMinhAnh('Mật mã radar không chính xác! Kiểm tra lại hoành độ cực trị và GTLN.');
+        speakChamber('Mật mã sai. Radar của họ tốt hơn tôi nghĩ, cậu cần chính xác hơn về tọa độ cực trị và GTLN.');
       }
     }
 
-    // Màn hình chiến thắng
+    // Màn hình chiến thắng (Updated dialogue with Chamber's style)
     function triggerWin() {
       clearInterval(state.timerInterval);
-      const winScreen = document.getElementById('win-screen');
-      winScreen.classList.remove('hidden');
+      document.getElementById('win-screen').classList.remove('hidden');
       
       const remMin = Math.floor(state.timeLeft / 60);
       const remSec = state.timeLeft % 60;
@@ -566,7 +516,7 @@
       document.getElementById('cert-badge').innerText = badge;
 
       // Pháo giấy Confetti
-      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      confetti({ particleCount: 150, spread: spread: 80, origin: { y: 0.6 } });
     }
 
     // Tải ảnh chứng nhận
@@ -580,12 +530,11 @@
       });
     }
 
-    // Khởi chạy ban đầu
+    // Khởi chạy ban đầu (Updated dialogue with Chamber's style)
     window.onload = () => {
       initStages();
       startTimer();
-      //Đã loại bỏ tham số mood
-      speakMinhAnh("Hệ thống đã tạo dữ liệu ngẫu nhiên cho 5 màn! Chúc cậu phá đảo thành công.");
+      speakChamber("Hệ thống đã tạo dữ liệu. *Perfect*[cite: 1.1.1]. Chúc cậu chiến thắng vang dội... và tất nhiên là phải *look good* khi làm điều đó[cite: 1.1.1].");
     };
   </script>
 </body>
