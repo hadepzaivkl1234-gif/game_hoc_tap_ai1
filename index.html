@@ -41,43 +41,11 @@
     .shake-anim {
       animation: shake 0.4s ease-in-out;
     }
-
-    /* --- HIỆU ỨNG CHUYỂN MÀN SCI-FI & VẠCH QUÉT LASER --- */
     .stage {
-      opacity: 0;
-      transform: translateY(15px) scale(0.98);
-      transition: opacity 0.4s ease, transform 0.4s ease;
       display: none;
     }
     .stage.active {
       display: block;
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-    .stage.exiting {
-      display: block;
-      opacity: 0;
-      transform: translateY(-15px) scale(1.02);
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    @keyframes scanline {
-      0% { transform: translateY(-100%); opacity: 1; }
-      50% { opacity: 1; }
-      100% { transform: translateY(800%); opacity: 0; }
-    }
-
-    .scanner-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background: linear-gradient(to right, transparent, #00f2fe, #ff3366, transparent);
-      box-shadow: 0 0 15px #00f2fe, 0 0 5px #ff3366;
-      pointer-events: none;
-      animation: scanline 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-      z-index: 40;
     }
   </style>
 </head>
@@ -93,10 +61,10 @@
       <div class="text-sm md:text-base font-semibold bg-black/40 px-3 py-1 rounded border border-cyan-500/40">
         ⏱️ THỜI GIAN: <span id="timer-display" class="text-cyan-400 font-bold text-lg">20:00</span>
       </div>
-      <button onclick="useHint()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-sm font-bold transition shadow-lg flex items-center gap-1 cursor-pointer">
+      <button onclick="useHint()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-sm font-bold transition shadow-lg flex items-center gap-1">
         💡 GỢI Ý (-30s) <span id="hint-count" class="bg-black/50 px-1.5 rounded text-xs">3</span>
       </button>
-      <button id="audio-toggle" onclick="toggleAudio()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-3 py-1.5 rounded text-sm font-bold border border-cyan-500/40 transition cursor-pointer">
+      <button id="audio-toggle" onclick="toggleAudio()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-3 py-1.5 rounded text-sm font-bold border border-cyan-500/40 transition">
         🔊 ÂM THANH: BẬT
       </button>
     </div>
@@ -107,13 +75,19 @@
     <!-- SVG Avatar -->
     <div class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-black/60 rounded-full border-2 border-cyan-400 flex items-center justify-center p-2 shadow-inner">
       <svg id="minh-anh-avatar" viewBox="0 0 100 100" class="w-full h-full">
+        <!-- Tóc và áo đồng phục -->
         <path d="M20 90 Q 20 40 50 40 Q 80 40 80 90 Z" fill="#1e293b"/>
         <path d="M30 45 Q 50 20 70 45 Q 85 70 80 90 L 20 90 Q 15 70 30 45" fill="#0f172a"/>
+        <!-- Khuôn mặt -->
         <circle cx="50" cy="55" r="22" fill="#ffd1b3"/>
+        <!-- Tóc mái -->
         <path d="M 30 45 Q 50 35 70 45 Q 60 55 50 45 Q 40 55 30 45" fill="#3b2219"/>
+        <!-- Biểu cảm (được thay đổi bằng JS) -->
         <g id="facial-expression">
+          <!-- Mắt bình thường -->
           <circle cx="42" cy="55" r="2.5" fill="#0f172a"/>
           <circle cx="58" cy="55" r="2.5" fill="#0f172a"/>
+          <!-- Miệng cười nhẹ -->
           <path d="M 45 65 Q 50 70 55 65" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>
         </g>
       </svg>
@@ -131,7 +105,7 @@
   </section>
 
   <!-- KHU VỰC TRÒ CHƠI CHÍNH -->
-  <main id="game-container" class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-6 md:p-8 neon-border mb-6 relative overflow-hidden">
+  <main id="game-container" class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-6 md:p-8 neon-border mb-6">
 
     <!-- MÀN 1: BẢN LỀ RỈ SÉT (HÓA 12 - NHẬP Ô ĐÁP ÁN) -->
     <div class="stage active" id="stage-1">
@@ -388,10 +362,10 @@
 
     // Khởi tạo các màn chơi với số liệu Random
     function initStages() {
-      // Màn 1
+      // Màn 1 (Đã sửa lại công thức chia đúng cho 890)
       const possibleM1 = [445, 712, 890, 1068, 1335];
       state.m1.m = possibleM1[Math.floor(Math.random() * possibleM1.length)];
-      state.m1.target = (state.m1.m * 12) / 89;
+      state.m1.target = (state.m1.m * 12) / 89; // Sửa từ 120 thành 12
       document.getElementById('m1-mass').innerText = state.m1.m;
 
       // Màn 2
@@ -414,56 +388,22 @@
       const slider4 = document.getElementById('m4-slider');
       slider4.max = (state.m4.side / 2 - 0.1).toFixed(2);
 
-      // Màn 5
+      // Màn 5 (Cố định hàm đơn giản y = x^3 - 3x^2 + 2)
       state.m5.x1 = 0; 
       state.m5.x2 = 2; 
       state.m5.maxVal = 2; 
     }
 
-    // --- HÀM CHUYỂN MÀN NÂNG CẤP VỚI HIỆU ỨNG SCI-FI ---
+    // Chuyển màn
     function nextStage(stageNum) {
-      const container = document.getElementById('game-container');
-      const currentStageEl = document.getElementById(`stage-${state.currentStage}`);
-      
-      // 1. Kích hoạt hiệu ứng thoát màn cũ (exiting)
-      currentStageEl.classList.remove('active');
-      currentStageEl.classList.add('exiting');
+      document.getElementById(`stage-${state.currentStage}`).classList.remove('active');
+      state.currentStage = stageNum;
+      document.getElementById(`stage-${stageNum}`).classList.add('active');
+      document.getElementById('stage-indicator').innerText = `Màn ${stageNum} / 5`;
 
-      // 2. Tạo hiệu ứng quét laser mở cửa bảo mật
-      const scanner = document.createElement('div');
-      scanner.className = 'scanner-overlay';
-      container.appendChild(scanner);
-
-      // Phát âm thanh chuyển màn
-      playSound('win');
-
-      // 3. Đợi hiệu ứng chạy xong (350ms) rồi đổi DOM sang màn mới
-      setTimeout(() => {
-        currentStageEl.classList.remove('exiting');
-        
-        // Cập nhật trạng thái màn hiện tại
-        state.currentStage = stageNum;
-        
-        // Kích hoạt màn tiếp theo
-        const nextStageEl = document.getElementById(`stage-${stageNum}`);
-        if (nextStageEl) {
-          nextStageEl.classList.add('active');
-        }
-        
-        // Cập nhật HUD chỉ báo màn
-        document.getElementById('stage-indicator').innerText = `Màn ${stageNum} / 5`;
-
-        // Lời thoại của trợ lý Minh Anh
-        if (stageNum <= 5) {
-          speakMinhAnh('happy', `Tuyệt vời! Đã qua màn ${stageNum - 1}. Tiếp tục thử thách tiếp theo nhé!`);
-        }
-
-        // 4. Dọn dẹp DOM vạch quét sau khi hoàn tất
-        setTimeout(() => {
-          scanner.remove();
-        }, 600);
-
-      }, 350);
+      if (stageNum <= 5) {
+        speakMinhAnh('happy', `Tuyệt vời! Đã qua màn ${stageNum - 1}. Tiếp tục thử thách tiếp theo nhé!`);
+      }
     }
 
     // Xử lý Màn 1 (Input NaOH)
