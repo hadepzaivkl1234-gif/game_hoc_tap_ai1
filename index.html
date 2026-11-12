@@ -24,28 +24,74 @@
     }
     .neon-border {
       border: 2px solid #00f2fe;
-      box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.4), inset 0 0 10px rgba(0, 242, 254, 0.2);
     }
     .neon-border-red {
       border: 2px solid #ff3366;
-      box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
+      box-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
     }
     .neon-text {
-      text-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
+      text-shadow: 0 0 10px rgba(0, 242, 254, 0.8);
     }
+
+    /* Hiệu ứng Scanlines màn hình tương lai */
+    body::after {
+      content: " ";
+      display: block;
+      position: fixed;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      z-index: 999;
+      background-size: 100% 3px, 3px 100%;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    /* Hiệu ứng rung lắc khi báo động */
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
-      20%, 60% { transform: translateX(-8px); }
-      40%, 80% { transform: translateX(8px); }
+      20%, 60% { transform: translateX(-10px); }
+      40%, 80% { transform: translateX(10px); }
     }
     .shake-anim {
       animation: shake 0.4s ease-in-out;
     }
+
+    /* HIỆU ỨNG CHUYỂN MÀN MƯỢT MÀ (STAGE TRANSITIONS) */
     .stage {
       display: none;
+      opacity: 0;
+      transform: scale(0.96) translateY(10px);
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .stage.active {
       display: block;
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      animation: stageEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes stageEnter {
+      0% {
+        opacity: 0;
+        transform: scale(0.94) translateY(15px);
+        filter: blur(4px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    /* Hiệu ứng phát sáng nút bấm */
+    .btn-sci-fi {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .btn-sci-fi:hover {
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.6);
+      transform: translateY(-2px);
     }
   </style>
 </head>
@@ -61,17 +107,17 @@
       <div class="text-sm md:text-base font-semibold bg-black/40 px-3 py-1 rounded border border-cyan-500/40">
         ⏱️ THỜI GIAN: <span id="timer-display" class="text-cyan-400 font-bold text-lg">20:00</span>
       </div>
-      <button onclick="useHint()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-sm font-bold transition shadow-lg flex items-center gap-1">
+      <button onclick="useHint()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-sm font-bold transition shadow-lg flex items-center gap-1 btn-sci-fi cursor-pointer">
         💡 GỢI Ý (-30s) <span id="hint-count" class="bg-black/50 px-1.5 rounded text-xs">3</span>
       </button>
-      <button id="audio-toggle" onclick="toggleAudio()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-3 py-1.5 rounded text-sm font-bold border border-cyan-500/40 transition">
+      <button id="audio-toggle" onclick="toggleAudio()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-3 py-1.5 rounded text-sm font-bold border border-cyan-500/40 transition btn-sci-fi cursor-pointer">
         🔊 ÂM THANH: BẬT
       </button>
     </div>
   </header>
 
   <!-- NHÂN VẬT ĐỒNG HÀNH & HỘP THOẠI -->
-  <section class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-4 neon-border mb-6 flex flex-col md:flex-row items-center gap-4">
+  <section class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-4 neon-border mb-6 flex flex-col md:flex-row items-center gap-4 shadow-xl">
     <!-- SVG Avatar -->
     <div class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-black/60 rounded-full border-2 border-cyan-400 flex items-center justify-center p-2 shadow-inner">
       <svg id="minh-anh-avatar" viewBox="0 0 100 100" class="w-full h-full">
@@ -82,12 +128,10 @@
         <circle cx="50" cy="55" r="22" fill="#ffd1b3"/>
         <!-- Tóc mái -->
         <path d="M 30 45 Q 50 35 70 45 Q 60 55 50 45 Q 40 55 30 45" fill="#3b2219"/>
-        <!-- Biểu cảm (được thay đổi bằng JS) -->
+        <!-- Biểu cảm -->
         <g id="facial-expression">
-          <!-- Mắt bình thường -->
           <circle cx="42" cy="55" r="2.5" fill="#0f172a"/>
           <circle cx="58" cy="55" r="2.5" fill="#0f172a"/>
-          <!-- Miệng cười nhẹ -->
           <path d="M 45 65 Q 50 70 55 65" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>
         </g>
       </svg>
@@ -105,13 +149,13 @@
   </section>
 
   <!-- KHU VỰC TRÒ CHƠI CHÍNH -->
-  <main id="game-container" class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-6 md:p-8 neon-border mb-6">
+  <main id="game-container" class="w-full max-w-4xl bg-slate-900/90 rounded-xl p-6 md:p-8 neon-border mb-6 shadow-2xl">
 
     <!-- MÀN 1: BẢN LỀ RỈ SÉT (HÓA 12 - NHẬP Ô ĐÁP ÁN) -->
     <div class="stage active" id="stage-1">
       <h2 class="text-xl md:text-2xl font-bold text-cyan-400 mb-3 sci-fi-font">MÀN 1: BẢN LỀ RỈ SÉT (HÓA HỌC 12)</h2>
       <p class="text-slate-300 mb-6 leading-relaxed">
-        Bản lề tủ dụng cụ bị kẹt cứng do rỉ sét! Cần xà phòng hóa hoàn toàn <span class="text-cyan-300 font-bold" id="m1-mass">890</span>g mỡ Tristearin ((C<sub>17</sub>H<sub>35</sub>COO)<sub>3</sub>C<sub>3</sub>H<sub>5</sub>) bằng dung dịch NaOH vừa đủ để tạo chất bôi trơn. (Cho M<sub>Tristearin</sub> = 890 g/mol, M<sub>NaOH</sub> = 40 g/mol).
+        Bản lề tủ dụng cụ bị kẹt cứng do rỉ sét! Cần xà phòng hóa hoàn toàn <span class="text-cyan-300 font-bold" id="m1-mass">890</span>g mỡ Tristearin ((C<sub>17</sub>H<sub>35</sub>COO)<sub>3</sub>C<sub>3</sub>H<sub>5</sub>) bằng dung dịch NaOH vừa đủ để tạo chất bôi trơn. (Cho M<sub>Tristearin</sub> = 890 g/mol, M<sub>NaOH</sub> = 40 g/mol)[cite: 1].
       </p>
       <div class="bg-black/40 p-6 rounded-lg border border-slate-800 text-center max-w-lg mx-auto">
         <label for="m1-input" class="block text-sm font-semibold text-slate-300 mb-2">Nhập khối lượng NaOH nguyên chất cần dùng (g):</label>
@@ -119,7 +163,7 @@
                onkeydown="if(event.key === 'Enter') submitStage1()"
                class="bg-slate-950 border-2 border-cyan-500 text-cyan-300 text-center text-xl font-bold p-3 rounded-lg w-48 mb-4 outline-none focus:ring-2 focus:ring-cyan-400">
         <br>
-        <button onclick="submitStage1()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg w-full cursor-pointer">
+        <button onclick="submitStage1()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg w-full btn-sci-fi cursor-pointer">
           XẢ DUNG DỊCH NaOH
         </button>
       </div>
@@ -129,8 +173,8 @@
     <div class="stage" id="stage-2">
       <h2 class="text-xl md:text-2xl font-bold text-cyan-400 mb-3 sci-fi-font">MÀN 2: HỆ THỐNG LÀM MÁT QUÁ TẢI (VẬT LÝ 12)</h2>
       <p class="text-slate-300 mb-6 leading-relaxed">
-        Lò phản ứng đang quá tải! Cần bơm nước lạnh (20°C) vào bình chứa để hạ nhiệt độ khối đồng khối lượng <span class="text-cyan-300 font-bold" id="m2-copper-mass">10</span> kg đang ở nhiệt độ <span class="text-cyan-300 font-bold" id="m2-temp">400</span> K xuống mức an toàn 320 K. 
-        (Biết c<sub>đồng</sub> = 380 J/kg.K, c<sub>nước</sub> = 4180 J/kg.K).
+        Lò phản ứng đang quá tải! Cần bơm nước lạnh (20°C) vào bình chứa để hạ nhiệt độ khối đồng khối lượng <span class="text-cyan-300 font-bold" id="m2-copper-mass">10</span> kg đang ở nhiệt độ <span class="text-cyan-300 font-bold" id="m2-temp">400</span> K xuống mức an toàn 320 K[cite: 1]. 
+        (Biết c<sub>đồng</sub> = 380 J/kg.K, c<sub>nước</sub> = 4180 J/kg.K)[cite: 1].
       </p>
       <div class="bg-black/40 p-6 rounded-lg border border-slate-800 max-w-lg mx-auto">
         <div class="mb-4 text-center">
@@ -138,7 +182,7 @@
           <span id="m2-slider-val" class="text-2xl font-bold text-cyan-400">5.0</span> kg (lít)
         </div>
         <input type="range" id="m2-slider" min="0" max="20" step="0.1" value="5" class="w-full accent-cyan-400 mb-6 cursor-pointer" oninput="updateM2Slider(this.value)">
-        <button onclick="submitStage2()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg w-full cursor-pointer">
+        <button onclick="submitStage2()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg w-full btn-sci-fi cursor-pointer">
           BƠM LÀM MÁT
         </button>
       </div>
@@ -148,12 +192,12 @@
     <div class="stage" id="stage-3">
       <h2 class="text-xl md:text-2xl font-bold text-cyan-400 mb-3 sci-fi-font">MÀN 3: ĐÈN KHÒ PHÁ KHÓA CHÌ (VẬT LÝ 12)</h2>
       <p class="text-slate-300 mb-6 leading-relaxed">
-        Cánh cửa bị khóa bởi chốt chì khối lượng <span class="text-cyan-300 font-bold" id="m3-mass">0.5</span> kg đang ở 27°C. Dùng đèn khò công suất P = 1000W làm nóng chảy hoàn toàn chốt chì (nhiệt độ nóng chảy 327°C, c = 130 J/kg.K, λ = 25000 J/kg). Hãy canh thời gian ngắt lửa chính xác!
+        Cánh cửa bị khóa bởi chốt chì khối lượng <span class="text-cyan-300 font-bold" id="m3-mass">0.5</span> kg đang ở 27°C. Dùng đèn khò công suất P = 1000W làm nóng chảy hoàn toàn chốt chì (nhiệt độ nóng chảy 327°C, c = 130 J/kg.K, λ = 25000 J/kg). Hãy canh thời gian ngắt lửa chính xác![cite: 1]
       </p>
       <div class="bg-black/40 p-6 rounded-lg border border-slate-800 text-center max-w-lg mx-auto">
         <div class="text-3xl font-mono text-cyan-400 font-bold mb-4" id="m3-timer-display">00.0s</div>
         <div class="flex gap-4 justify-center">
-          <button id="m3-start-btn" onclick="startM3Torch()" class="bg-amber-600 hover:bg-amber-500 text-white px-5 py-2.5 rounded-lg font-bold transition shadow-lg cursor-pointer">
+          <button id="m3-start-btn" onclick="startM3Torch()" class="bg-amber-600 hover:bg-amber-500 text-white px-5 py-2.5 rounded-lg font-bold transition shadow-lg btn-sci-fi cursor-pointer">
             🔥 BẬT ĐÈN KHÒ
           </button>
           <button id="m3-stop-btn" onclick="stopM3Torch()" disabled class="bg-slate-700 text-slate-400 px-5 py-2.5 rounded-lg font-bold transition shadow-lg cursor-not-allowed">
@@ -167,7 +211,7 @@
     <div class="stage" id="stage-4">
       <h2 class="text-xl md:text-2xl font-bold text-cyan-400 mb-3 sci-fi-font">MÀN 4: THÙNG ĐỐI TRỌNG RÒNG RỌC (TOÁN 12)</h2>
       <p class="text-slate-300 mb-6 leading-relaxed">
-        Chế tạo thùng nước không nắp từ tấm tôn hình vuông cạnh <span class="text-cyan-300 font-bold" id="m4-side">1.8</span>m bằng cách cắt 4 hình vuông cạnh x ở 4 góc rồi gập lên. Dùng đạo hàm tìm x để thể tích thùng lớn nhất kéo ròng rọc mở cửa!
+        Chế tạo thùng nước không nắp từ tấm tôn hình vuông cạnh <span class="text-cyan-300 font-bold" id="m4-side">1.8</span>m bằng cách cắt 4 hình vuông cạnh x ở 4 góc rồi gập lên. Dùng đạo hàm tìm x để thể tích thùng lớn nhất kéo ròng rọc mở cửa![cite: 1]
       </p>
       <div class="bg-black/40 p-6 rounded-lg border border-slate-800 max-w-lg mx-auto">
         <div class="mb-4 text-center">
@@ -175,7 +219,7 @@
           <span id="m4-slider-val" class="text-2xl font-bold text-cyan-400">0.10</span> m
         </div>
         <input type="range" id="m4-slider" min="0.05" max="0.80" step="0.05" value="0.10" class="w-full accent-cyan-400 mb-6 cursor-pointer" oninput="updateM4Slider(this.value)">
-        <button onclick="submitStage4()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg w-full cursor-pointer">
+        <button onclick="submitStage4()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg w-full btn-sci-fi cursor-pointer">
           CẮT LASER & GẤP THÙNG
         </button>
       </div>
@@ -185,7 +229,7 @@
     <div class="stage" id="stage-5">
       <h2 class="text-xl md:text-2xl font-bold text-cyan-400 mb-3 sci-fi-font">MÀN 5: MẬT MÃ RADAR CUỐI CÙNG (TOÁN 12)</h2>
       <p class="text-slate-300 mb-6 leading-relaxed">
-        Cánh cửa thép cuối cùng yêu cầu nhập tọa độ cực trị và giá trị lớn nhất của hàm số <span class="text-cyan-300 font-bold" id="m5-func-str">y = x³ - 3x² + 2</span> trên đoạn [0, 3].
+        Cánh cửa thép cuối cùng yêu cầu nhập tọa độ cực trị và giá trị lớn nhất của hàm số <span class="text-cyan-300 font-bold" id="m5-func-str">y = x³ - 3x² + 2</span> trên đoạn [0, 3][cite: 1].
       </p>
       <div class="bg-black/40 p-6 rounded-lg border border-slate-800 max-w-md mx-auto space-y-4">
         <div>
@@ -200,7 +244,7 @@
           <label class="block text-xs text-slate-400 mb-1">Giá trị lớn nhất Max f(x) trên [0, 3]:</label>
           <input type="number" id="m5-in-3" step="0.1" class="w-full bg-slate-950 border border-cyan-500 text-cyan-300 p-2.5 rounded text-center font-bold outline-none">
         </div>
-        <button onclick="submitStage5()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg w-full mt-2 cursor-pointer">
+        <button onclick="submitStage5()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg w-full mt-2 btn-sci-fi cursor-pointer">
           MỞ CỬA THOÁT HIỂM
         </button>
       </div>
@@ -225,10 +269,10 @@
       </div>
 
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <button onclick="downloadCertificate()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-2.5 rounded-lg font-bold transition shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+        <button onclick="downloadCertificate()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-2.5 rounded-lg font-bold transition shadow-lg flex items-center justify-center gap-2 btn-sci-fi cursor-pointer">
           📥 TẢI ẢNH CHỨNG NHẬN
         </button>
-        <button onclick="location.reload()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-5 py-2.5 rounded-lg font-bold transition border border-cyan-500/40 cursor-pointer">
+        <button onclick="location.reload()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-5 py-2.5 rounded-lg font-bold transition border border-cyan-500/40 btn-sci-fi cursor-pointer">
           🔄 CHƠI LẠI TỪ ĐẦU
         </button>
       </div>
@@ -245,7 +289,6 @@
       mistakes: 0,
       soundEnabled: true,
       timerInterval: null,
-      // Dữ liệu ngẫu nhiên từng màn
       m1: { m: 890, target: 120 },
       m2: { mass: 10, t1: 400, targetWater: 5.0 },
       m3: { mass: 0.5, targetTime: 32.0, running: false, startTime: 0, elapsed: 0, timerId: null },
@@ -253,7 +296,6 @@
       m5: { x1: 0, x2: 2, maxVal: 2 }
     };
 
-    // Web Audio API Tổng hợp âm thanh
     let audioCtx = null;
     function initAudio() {
       if (!audioCtx) {
@@ -303,7 +345,6 @@
       document.getElementById('audio-toggle').innerText = state.soundEnabled ? '🔊 ÂM THANH: BẬT' : '🔇 ÂM THANH: TẮT';
     }
 
-    // Đổi biểu cảm Minh Anh
     function speakMinhAnh(mood, text) {
       const expr = document.getElementById('facial-expression');
       const textEl = document.getElementById('dialogue-text');
@@ -318,14 +359,12 @@
       }
     }
 
-    // Hiệu ứng rung màn hình
     function triggerShake() {
       const container = document.getElementById('game-container');
       container.classList.add('shake-anim');
       setTimeout(() => container.classList.remove('shake-anim'), 400);
     }
 
-    // Đồng hồ đếm ngược tổng
     function startTimer() {
       state.timerInterval = setInterval(() => {
         state.timeLeft--;
@@ -340,7 +379,6 @@
       }, 1000);
     }
 
-    // Gợi ý
     function useHint() {
       if (state.hintsLeft <= 0) {
         alert('Đã hết lượt gợi ý!');
@@ -360,15 +398,12 @@
       speakMinhAnh('neutral', `Gợi ý: ${hints[state.currentStage - 1]}`);
     }
 
-    // Khởi tạo các màn chơi với số liệu Random
     function initStages() {
-      // Màn 1 (Đã sửa lại công thức chia đúng cho 890)
       const possibleM1 = [445, 712, 890, 1068, 1335];
       state.m1.m = possibleM1[Math.floor(Math.random() * possibleM1.length)];
-      state.m1.target = (state.m1.m * 12) / 89; // Sửa từ 120 thành 12
+      state.m1.target = (state.m1.m * 12) / 89;
       document.getElementById('m1-mass').innerText = state.m1.m;
 
-      // Màn 2
       state.m2.mass = [5, 10, 15][Math.floor(Math.random() * 3)];
       state.m2.t1 = [380, 400, 420][Math.floor(Math.random() * 3)];
       const tCuC = state.m2.t1 - 273;
@@ -376,37 +411,46 @@
       document.getElementById('m2-copper-mass').innerText = state.m2.mass;
       document.getElementById('m2-temp').innerText = state.m2.t1;
 
-      // Màn 3
       state.m3.mass = [0.4, 0.5, 0.6][Math.floor(Math.random() * 3)];
       state.m3.targetTime = state.m3.mass * 64; 
       document.getElementById('m3-mass').innerText = state.m3.mass;
 
-      // Màn 4
       state.m4.side = [1.2, 1.8, 2.4][Math.floor(Math.random() * 3)];
       state.m4.targetX = parseFloat((state.m4.side / 6).toFixed(2));
       document.getElementById('m4-side').innerText = state.m4.side;
       const slider4 = document.getElementById('m4-slider');
       slider4.max = (state.m4.side / 2 - 0.1).toFixed(2);
 
-      // Màn 5 (Cố định hàm đơn giản y = x^3 - 3x^2 + 2)
       state.m5.x1 = 0; 
       state.m5.x2 = 2; 
       state.m5.maxVal = 2; 
     }
 
-    // Chuyển màn
+    // NÂNG CẤP: Chuyển màn có hiệu ứng mượt mà (Fade & Scale Transition)
     function nextStage(stageNum) {
-      document.getElementById(`stage-${state.currentStage}`).classList.remove('active');
-      state.currentStage = stageNum;
-      document.getElementById(`stage-${stageNum}`).classList.add('active');
-      document.getElementById('stage-indicator').innerText = `Màn ${stageNum} / 5`;
+      const currentStageEl = document.getElementById(`stage-${state.currentStage}`);
+      
+      // Hiệu ứng mờ dần và thu nhỏ màn hình cũ trước khi ẩn
+      currentStageEl.style.opacity = '0';
+      currentStageEl.style.transform = 'scale(0.95) translateY(-10px)';
+
+      setTimeout(() => {
+        currentStageEl.classList.remove('active');
+        // Reset style để chuẩn bị cho lần hiển thị sau
+        currentStageEl.style.opacity = '';
+        currentStageEl.style.transform = '';
+
+        state.currentStage = stageNum;
+        const nextStageEl = document.getElementById(`stage-${stageNum}`);
+        nextStageEl.classList.add('active');
+        document.getElementById('stage-indicator').innerText = `Màn ${stageNum} / 5`;
+      }, 300);
 
       if (stageNum <= 5) {
         speakMinhAnh('happy', `Tuyệt vời! Đã qua màn ${stageNum - 1}. Tiếp tục thử thách tiếp theo nhé!`);
       }
     }
 
-    // Xử lý Màn 1 (Input NaOH)
     function submitStage1() {
       const val = parseFloat(document.getElementById('m1-input').value);
       if (isNaN(val)) {
@@ -425,7 +469,6 @@
       }
     }
 
-    // Xử lý Màn 2 (Slider nước)
     function updateM2Slider(val) {
       document.getElementById('m2-slider-val').innerText = parseFloat(val).toFixed(1);
     }
@@ -443,13 +486,12 @@
       }
     }
 
-    // Xử lý Màn 3 (Đèn khò)
     function startM3Torch() {
       state.m3.running = true;
       state.m3.startTime = performance.now() - state.m3.elapsed;
       document.getElementById('m3-start-btn').disabled = true;
       document.getElementById('m3-stop-btn').disabled = false;
-      document.getElementById('m3-stop-btn').className = "bg-red-600 hover:bg-red-500 text-white px-5 py-2.5 rounded-lg font-bold transition shadow-lg cursor-pointer";
+      document.getElementById('m3-stop-btn').className = "bg-red-600 hover:bg-red-500 text-white px-5 py-2.5 rounded-lg font-bold transition shadow-lg cursor-pointer btn-sci-fi";
       
       function updateTorch() {
         if (!state.m3.running) return;
@@ -487,7 +529,6 @@
       }
     }
 
-    // Xử lý Màn 4 (Slider x thùng tôn)
     function updateM4Slider(val) {
       document.getElementById('m4-slider-val').innerText = parseFloat(val).toFixed(2);
     }
@@ -505,7 +546,6 @@
       }
     }
 
-    // Xử lý Màn 5 (Mật mã Radar)
     function submitStage5() {
       const v1 = parseFloat(document.getElementById('m5-in-1').value);
       const v2 = parseFloat(document.getElementById('m5-in-2').value);
@@ -523,7 +563,6 @@
       }
     }
 
-    // Màn hình chiến thắng
     function triggerWin() {
       clearInterval(state.timerInterval);
       document.getElementById('win-screen').classList.remove('hidden');
@@ -538,11 +577,9 @@
       else if (state.mistakes > 1 || state.timeLeft < 600) badge = "🥈 HUY HIỆU BẠC";
       document.getElementById('cert-badge').innerText = badge;
 
-      // Pháo giấy Confetti
       confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
     }
 
-    // Tải ảnh chứng nhận
     function downloadCertificate() {
       const card = document.getElementById('certificate-card');
       html2canvas(card, { backgroundColor: '#05050a' }).then(canvas => {
@@ -553,7 +590,6 @@
       });
     }
 
-    // Khởi chạy ban đầu
     window.onload = () => {
       initStages();
       startTimer();
